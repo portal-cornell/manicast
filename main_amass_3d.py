@@ -164,7 +164,11 @@ def test():
         print('overall average loss in mm is: '+str(accum_loss/n))
 
 def finetune():
-    optimizer=optim.Adam(model.parameters(),lr=args.lr,weight_decay=1e-05)
+    FINETUNE_LR = 1e-2
+    FINETUNE_EPOCHS = 20
+    model.load_state_dict(torch.load(os.path.join('/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/mocap_new',model_name)))
+
+    optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR,weight_decay=1e-05)
 
     if args.use_scheduler:
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=args.gamma)
@@ -196,7 +200,7 @@ def finetune():
     # use joints from mapping.json
 
 
-    for epoch in range(args.n_epochs):
+    for epoch in range(FINETUNE_EPOCHS):
         running_loss=0
         n=0
         model.train()
@@ -264,6 +268,9 @@ if __name__ == '__main__':
         # import pdb; pdb.set_trace()
         visualize(args.input_n,args.output_n,args.visualize_from,args.data_dir,model,device,args.n_viz,args.skip_rate)
     elif args.mode == 'finetune':
+        """
+        python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --model_path ./checkpoints/finetune --mode finetune
+        """
         finetune()
 
 

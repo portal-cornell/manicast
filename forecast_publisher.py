@@ -14,7 +14,7 @@ import torch
 import math
 
 # model_path = '/home/portal/human_forecasting/STSGCN/checkpoints/mocap_new/amass_3d_25frames_ckpt'
-model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/overfit_test/amass_3d_25frames_ckpt'
+model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
 
 input_dim = 3
 input_n = 10
@@ -172,7 +172,7 @@ def publish_forecasts(sequences_predict, current_pose, history_pose):
     # connects the forecast base to the current hip positions
     # indices 18-35
     for i, time in enumerate([10, 24]):
-        for idx, edge in enumerate(edges + extra_edges):
+        for idx, edge in enumerate(edges):
             marker = Marker()
             marker.header.frame_id = FRAME
             marker.type = marker.LINE_LIST

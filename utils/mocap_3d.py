@@ -22,7 +22,7 @@ class Datasets(Dataset):
         sequence_len = input_n + output_n
 
         mocap_splits = [
-            ['chopping_mixing_data'],
+            ['chopping_mixing_data', 'chopping_stirring_data'],
             ['chopping_stirring_data',],
             ['chopping_stirring_data'],
         ]
