@@ -36,7 +36,7 @@ parser.add_argument('--tcnn_dropout',type=float,default=0.0,help= 'tcnn dropout'
 
 
 
-parser.add_argument('--mode',type=str,default='train',choices=['train','test','viz'],help= 'Choose to train,test or visualize from the model.Either train,test or viz')
+parser.add_argument('--mode',type=str,default='train',choices=['train','test','viz','finetune'],help= 'Choose to train,test or visualize from the model.Either train,test,viz,or finetune')
 parser.add_argument('--n_epochs',type=int,default=50,help= 'number of epochs to train')
 parser.add_argument('--batch_size',type=int,default=256,help= 'batch size')
 parser.add_argument('--batch_size_test',type=int,default=256,help= 'batch size for the test set')
