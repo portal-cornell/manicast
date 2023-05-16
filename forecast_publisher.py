@@ -14,7 +14,7 @@ import torch
 import math
 
 # model_path = '/home/portal/human_forecasting/STSGCN/checkpoints/mocap_new/amass_3d_25frames_ckpt'
-model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/finetune/amass_3d_25frames_ckpt'
+model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/finetune_hip/amass_3d_25frames_ckpt'
 
 input_dim = 3
 input_n = 10
@@ -226,15 +226,15 @@ def get_forecast_array():
     # print(batch.shape)
     batch = batch.unsqueeze(0)
     # print(batch.shape)
-    # current_left_hip = batch[:,-1,-2:-1,:]
-    # batch = batch[:, :, :, :] - batch[:, 0:10, -2:-1, :]
-    # batch = batch[:, :, :, :] - current_left_hip
+    current_left_hip = batch[:,-1,-2:-1,:]
+    # current_left_hip = 0
+    batch = batch[:, :, :, :] - current_left_hip
 
 
     sequences_train=batch[:,:,:-2,:].permute(0,3,1,2)
     sequences_predict=model(sequences_train).permute(0,1,3,2)
     # print(sequences_predict.shape)
-    marker_array = publish_forecasts((sequences_predict)[0], (batch[:,-1,:,:])[0], (batch[:,0,:,:])[0])
+    marker_array = publish_forecasts((sequences_predict+current_left_hip)[0], (batch[:,-1,:,:]+current_left_hip)[0], (batch[:,0,:,:]+current_left_hip)[0])
 
     # cap_frame_length = len(skipped_frames)
 

@@ -39,6 +39,8 @@ class Datasets(Dataset):
                     self.data_lst.extend(torch.split(tensor, sequence_len)[:-1])
         # if any(t.shape[0] != 35 for t in self.data_lst):
         #     print('last sequence is not long enough')
+        for seq in self.data_lst:
+            seq = seq[:, :, :] - seq[:, 21:22, :]
 
 
     def __len__(self):

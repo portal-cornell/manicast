@@ -166,7 +166,7 @@ def test():
 def finetune():
     FINETUNE_LR = 1e-2
     FINETUNE_EPOCHS = 20
-    model.load_state_dict(torch.load(os.path.join('/share/portal/pd337/Human_Motion_Forecasting/checkpoints/prefinetune',model_name)))
+    model.load_state_dict(torch.load(os.path.join('/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/prefinetune',model_name)))
 
     optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR,weight_decay=1e-05)
 
@@ -198,7 +198,6 @@ def finetune():
     mapping = read_json('./mapping.json')
     joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
     # use joints from mapping.json
-
 
     for epoch in range(FINETUNE_EPOCHS):
         running_loss=0
