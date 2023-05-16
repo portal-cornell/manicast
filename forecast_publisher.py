@@ -14,7 +14,7 @@ import torch
 import math
 
 # model_path = '/home/portal/human_forecasting/STSGCN/checkpoints/mocap_new/amass_3d_25frames_ckpt'
-model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
+model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/finetune/amass_3d_25frames_ckpt'
 
 input_dim = 3
 input_n = 10
