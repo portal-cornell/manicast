@@ -166,7 +166,7 @@ def test():
 def finetune():
     FINETUNE_LR = 1e-2
     FINETUNE_EPOCHS = 20
-    model.load_state_dict(torch.load(os.path.join('/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/mocap_new',model_name)))
+    model.load_state_dict(torch.load(os.path.join('/share/portal/pd337/Human_Motion_Forecasting/checkpoints/prefinetune2',model_name)))
 
     optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR,weight_decay=1e-05)
 
@@ -259,6 +259,9 @@ def finetune():
 if __name__ == '__main__':
 
     if args.mode == 'train':
+        """
+        python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --model_path ./checkpoints/prefinetune3 --skip_rate 5
+        """
         train()
     elif args.mode == 'test':
         test()
