@@ -22,11 +22,12 @@ class Datasets(Dataset):
         sequence_len = input_n + output_n
 
         mocap_splits = [
-            ['chopping_mixing_data', 'chopping_stirring_data'],
-            ['chopping_stirring_data',],
-            ['chopping_stirring_data'],
+            ['chopping_mixing_data/train'],
+            ['chopping_mixing_data/val',],
+            ['chopping_mixing_data/test'],
         ]
-        names = ["Kushal", "Prithwish"]
+        names = ["Kushal"]
+
 
         for ds in mocap_splits[split]:
             print(f'>>> loading {ds}')
@@ -39,8 +40,8 @@ class Datasets(Dataset):
                     self.data_lst.extend(torch.split(tensor, sequence_len)[:-1])
         # if any(t.shape[0] != 35 for t in self.data_lst):
         #     print('last sequence is not long enough')
-        for seq in self.data_lst:
-            seq = seq[:, :, :] - seq[:, 21:22, :]
+        for idx, seq in enumerate(self.data_lst):
+            self.data_lst[idx] = seq[:, :, :] - seq[input_n-1:input_n, 21:22, :]
 
 
     def __len__(self):

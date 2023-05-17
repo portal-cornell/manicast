@@ -164,11 +164,11 @@ def test():
         print('overall average loss in mm is: '+str(accum_loss/n))
 
 def finetune():
-    FINETUNE_LR = 1e-2
-    FINETUNE_EPOCHS = 20
-    model.load_state_dict(torch.load(os.path.join('/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/prefinetune',model_name)))
+    FINETUNE_LR = 1e-3
+    FINETUNE_EPOCHS = 10
+    model.load_state_dict(torch.load(os.path.join('/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/mocap_new',model_name)))
 
-    optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR,weight_decay=1e-05)
+    optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR)
 
     if args.use_scheduler:
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=args.gamma)
@@ -180,7 +180,7 @@ def finetune():
     Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
     loader_train = DataLoader(
         Dataset,
-        batch_size=16,
+        batch_size=64,
         shuffle = True,
         num_workers=0)    
 
@@ -188,7 +188,7 @@ def finetune():
 
     loader_val = DataLoader(
         Dataset_val,
-        batch_size=16,
+        batch_size=128,
         shuffle = True,
         num_workers=0)                          
     # joint_used=np.arange(4,22)
@@ -200,6 +200,26 @@ def finetune():
     # use joints from mapping.json
 
     for epoch in range(FINETUNE_EPOCHS):
+        
+        model.eval()
+        with torch.no_grad():
+            running_loss=0
+            n=0
+            for cnt,batch in enumerate(loader_val): 
+                batch = batch.float().to(device)[:, :, joint_used]
+                batch_dim=batch.shape[0]
+                n+=batch_dim
+                
+                sequences_train=batch[:,0:args.input_n,:,:].permute(0,3,1,2)
+                sequences_predict_gt=batch[:,args.input_n:args.input_n+args.output_n,:,:]
+                sequences_predict=model(sequences_train)
+                loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
+                if cnt % 200 == 0:
+                    print('[%d, %5d]  validation loss: %.3f' %(epoch + 1, cnt + 1, loss.item()))                    
+                running_loss+=loss*batch_dim
+            val_loss.append(running_loss.detach().cpu()/n)
+            if args.use_scheduler:
+                scheduler.step()
         running_loss=0
         n=0
         model.train()
@@ -221,25 +241,7 @@ def finetune():
             optimizer.step()
             running_loss += loss*batch_dim
         train_loss.append(running_loss.detach().cpu()/n)
-        model.eval()
-        with torch.no_grad():
-            running_loss=0
-            n=0
-            for cnt,batch in enumerate(loader_val): 
-                batch = batch.float().to(device)[:, :, joint_used]
-                batch_dim=batch.shape[0]
-                n+=batch_dim
-                
-                sequences_train=batch[:,0:args.input_n,:,:].permute(0,3,1,2)
-                sequences_predict_gt=batch[:,args.input_n:args.input_n+args.output_n,:,:]
-                sequences_predict=model(sequences_train)
-                loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
-                if cnt % 200 == 0:
-                    print('[%d, %5d]  validation loss: %.3f' %(epoch + 1, cnt + 1, loss.item()))                    
-                running_loss+=loss*batch_dim
-            val_loss.append(running_loss.detach().cpu()/n)
-            if args.use_scheduler:
-                scheduler.step()
+        
 
         if (epoch+1)%10==0:
             print('----saving model-----')
@@ -271,7 +273,7 @@ if __name__ == '__main__':
         visualize(args.input_n,args.output_n,args.visualize_from,args.data_dir,model,device,args.n_viz,args.skip_rate)
     elif args.mode == 'finetune':
         """
-        python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --model_path ./checkpoints/finetune --mode finetune
+        python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --mode finetune --model_path ./checkpoints/finetune_tmp
         """
         finetune()
 

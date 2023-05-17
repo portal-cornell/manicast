@@ -28,7 +28,7 @@ def get_pose_history(data, skeleton_name, fps):
     skip_rate = int(round(120/fps))
     select_frames = torch.tensor(range(len(tensor)//skip_rate))*skip_rate
     skipped_frames = tensor[select_frames]
-    return transform_coords(skipped_frames)
+    return skipped_frames
 
 if __name__ == "__main__":
     mapping = read_json('./mapping.json')

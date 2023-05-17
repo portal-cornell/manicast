@@ -13,8 +13,8 @@ from utils.loss_funcs import mpjpe_error
 import torch
 import math
 
-# model_path = '/home/portal/human_forecasting/STSGCN/checkpoints/mocap_new/amass_3d_25frames_ckpt'
-model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/finetune_hip/amass_3d_25frames_ckpt'
+# model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
+model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/finetune_tmp/amass_3d_25frames_ckpt'
 
 input_dim = 3
 input_n = 10
@@ -39,7 +39,7 @@ cylinder_color = [0,1,0]
 radius = 0.45
 
 in_collision = False
-FRAME = 'map' #change to mocap when integrating
+FRAME = 'mocap' #change to mocap when integrating
 
 
 joint_history = {}
@@ -56,7 +56,7 @@ def callback(data):
         print(data.ns)
         print(time_step)
         print('WHYYYYY')
-
+    # print(data.ns)
     joint_history[time_step][data.ns] = data
     if len(joint_history[time_step]) == 25:
         if time_step >= 100:
@@ -67,7 +67,7 @@ def callback(data):
         #     print(time_step)
 
 def get_relevant_joints(all_joints):
-    prefix = 'Prithwish_'
+    prefix = 'Kushal_'
     relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',
                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut',
                        'WaistLBack', 'WaistRBack']
@@ -138,8 +138,10 @@ def publish_forecasts(sequences_predict, current_pose, history_pose):
         pos1, pos2 = current_pose[edge[0]], current_pose[edge[1]]
         # import pdb; pdb.set_trace()
         p1, p2 = Point(), Point()
-        p1.x, p1.y, p1.z = pos1.tolist()
-        p2.x, p2.y, p2.z = pos2.tolist()
+        x, y, z = pos1.tolist()
+        p1.x, p1.y, p1.z = -x, z, y
+        x, y, z = pos2.tolist()
+        p2.x, p2.y, p2.z = -x, z, y
         # print(p1)
         marker.points = [p1, p2]
         marker_array.markers.append(marker)
@@ -172,7 +174,7 @@ def publish_forecasts(sequences_predict, current_pose, history_pose):
     # connects the forecast base to the current hip positions
     # indices 18-35
     for i, time in enumerate([10, 24]):
-        for idx, edge in enumerate(edges):
+        for idx, edge in enumerate(edges + extra_edges):
             marker = Marker()
             marker.header.frame_id = FRAME
             marker.type = marker.LINE_LIST
@@ -185,8 +187,10 @@ def publish_forecasts(sequences_predict, current_pose, history_pose):
             pos1, pos2 = current_pose[edge[0]] if edge[0] >= 7 else sequences_predict[time][edge[0]], current_pose[edge[1]] if edge[1] >= 7 else sequences_predict[time][edge[1]]
             # import pdb; pdb.set_trace()
             p1, p2 = Point(), Point()
-            p1.x, p1.y, p1.z = pos1.tolist()
-            p2.x, p2.y, p2.z = pos2.tolist()
+            x, y, z = pos1.tolist()
+            p1.x, p1.y, p1.z = -x, z, y
+            x, y, z = pos2.tolist()
+            p2.x, p2.y, p2.z = -x, z, y
             # print(p1)
             marker.points = [p1, p2]
             marker_array.markers.append(marker)
@@ -226,6 +230,9 @@ def get_forecast_array():
     # print(batch.shape)
     batch = batch.unsqueeze(0)
     # print(batch.shape)
+
+    # Removing left hip works for mocap_new, doesn't work for finetune_hip
+    # Leaving left hip in works for finetune_hip, doesn't work for mocap_new
     current_left_hip = batch[:,-1,-2:-1,:]
     # current_left_hip = 0
     batch = batch[:, :, :, :] - current_left_hip
@@ -236,44 +243,6 @@ def get_forecast_array():
     # print(sequences_predict.shape)
     marker_array = publish_forecasts((sequences_predict+current_left_hip)[0], (batch[:,-1,:,:]+current_left_hip)[0], (batch[:,0,:,:]+current_left_hip)[0])
 
-    # cap_frame_length = len(skipped_frames)
-
-    # input_n = 10
-    # output_n = 25
-
-    # joint_used = np.array([12, 16, 17, 18, 19, 20, 21])
-    # # joint_used = np.array([2, 9, 16, 7, 14, 13, 20])
-
-    # losses, preds, gts = [], [], []
-
-
-
-
-    # for start in range(input_n, cap_frame_length-input_n-output_n):
-    #     batch = torch.from_numpy(skipped_frames[None, start:start+input_n+output_n]).float()
-    #     batch = batch[:, :, :, :] - batch[:, 0:1, 21:22, :]
-        
-    #     sequences_train=batch[:,0:input_n,joint_used,:].permute(0,3,1,2)
-    #     sequences_predict_gt=batch[:,:input_n+output_n,:,:]
-        
-    #     sequences_predict=model(sequences_train).permute(0,1,3,2)
-    #     all_joints_seq=sequences_predict_gt.clone()
-    #     all_joints_seq[:,input_n:,joint_used,:]=sequences_predict
-        
-    #     relevant_pred = all_joints_seq[:, input_n:, joint_used, :]
-    #     relevant_gt = sequences_predict_gt[:, input_n:, joint_used, :]
-
-    #     loss=mpjpe_error(relevant_pred,relevant_gt)*1000# # both must have format (batch,T,V,C)
-
-    #     data_pred=torch.squeeze(all_joints_seq,0).cpu().data.numpy()
-    #     data_gt=torch.squeeze(sequences_predict_gt,0).cpu().data.numpy()
-    #     preds.append(data_pred)
-    #     gts.append(data_gt)
-    #     losses.append(loss.item())
-
-
-
-    # marker_array = MarkerArray()
     return marker_array
 
 def get_cylinder():
@@ -373,7 +342,8 @@ def listener():
 
     # spin() simply keeps python from exiting until this 
         if first:
-            
+            pub_intersect.publish(pot_marker)
+            pub_intersect.publish(table_marker)
             first = False
         pub_intersect.publish(pot_marker)
         pub_intersect.publish(table_marker)
