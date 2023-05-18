@@ -22,11 +22,27 @@ class Datasets(Dataset):
         sequence_len = input_n + output_n
 
         mocap_splits = [
-            ['chopping_mixing_data/train'],
-            ['chopping_mixing_data/val',],
+            ['chopping_mixing_data/train',
+             'chopping_mixing_data/val',
+             'chopping_mixing_data/test',
+             'chopping_stirring_data/train',
+             'chopping_stirring_data/val',
+             'chopping_stirring_data/test',],
+            ['chopping_mixing_data/val',
+             'chopping_stirring_data/val',],
             ['chopping_mixing_data/test'],
         ]
-        names = ["Kushal"]
+        names = ["Kushal", "Prithwish"]
+
+        ignore_data = {
+            "Prithwish":['chopping_mixing_0.json',
+                         'chopping_mixing_2.json',
+                         'chopping_mixing_4.json',
+                         'chopping_mixing_5.json',
+                         'chopping_mixing_8.json',
+                         'chopping_stirring_0.json'],
+            "Kushal":[]
+        }
 
 
         for ds in mocap_splits[split]:
@@ -35,16 +51,16 @@ class Datasets(Dataset):
                 print(f'Episode: {self.data_dir}/{ds}/{episode}')
                 json_data = read_json(f'{self.data_dir}/{ds}/{episode}')
                 for skeleton_name in names:
+                    if episode in ignore_data[skeleton_name]:
+                        print('Ignoring for ' + skeleton_name)
+                        continue
                     tensor = get_pose_history(json_data, skeleton_name)
                     # chop the tensor into a bunch of slices of size sequence_len
                     for start_frame in range(tensor.shape[0]-(sequence_len*self.sample_rate)):
                         end_frame = start_frame + (sequence_len*self.sample_rate)
                         self.data_lst.append(tensor[start_frame:end_frame, :, :])
-        # if any(t.shape[0] != 35 for t in self.data_lst):
-        #     print('last sequence is not long enough')
         for idx, seq in enumerate(self.data_lst):
             self.data_lst[idx] = seq[:, :, :] - seq[input_n-1:input_n, 21:22, :]
-        print('here')
 
 
     def __len__(self):

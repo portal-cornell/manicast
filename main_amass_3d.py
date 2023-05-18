@@ -166,7 +166,7 @@ def test():
 def finetune():
     FINETUNE_LR = 1e-3
     FINETUNE_EPOCHS = 10
-    model.load_state_dict(torch.load(os.path.join('./checkpoints/mocap_new',model_name)))
+    model.load_state_dict(torch.load(os.path.join('./checkpoints/pretrained',model_name)))
 
     optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR)
 
