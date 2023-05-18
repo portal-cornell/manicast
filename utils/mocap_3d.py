@@ -37,11 +37,14 @@ class Datasets(Dataset):
                 for skeleton_name in names:
                     tensor = get_pose_history(json_data, skeleton_name, self.sample_rate)
                     # chop the tensor into a bunch of slices of size sequence_len
-                    self.data_lst.extend(torch.split(tensor, sequence_len)[:-1])
+                    for start_frame in range(tensor.shape[0]-sequence_len):
+                        end_frame = start_frame + sequence_len
+                        self.data_lst.append(tensor[start_frame:end_frame, :, :])
         # if any(t.shape[0] != 35 for t in self.data_lst):
         #     print('last sequence is not long enough')
         for idx, seq in enumerate(self.data_lst):
             self.data_lst[idx] = seq[:, :, :] - seq[input_n-1:input_n, 21:22, :]
+        print(len(self.data_lst))
 
 
     def __len__(self):
