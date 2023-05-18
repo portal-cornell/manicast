@@ -30,22 +30,28 @@ model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 model.eval()
 print()
 
-# Dataset = MoCapDatasets('./mocap_data',10,25,sample_rate=25,split=0)
-Dataset = Datasets('./datasets',10,25,5,split=0)
+Dataset = MoCapDatasets('./mocap_data',10,25,sample_rate=25,split=0)
+joint_used = np.array([2, 9, 16, 7, 14, 13, 20])
+
+# Dataset = Datasets('./datasets',10,25,5,split=0)
+# joint_used = np.array([12, 16, 17, 18, 19, 20, 21])
+
 loader_val = DataLoader(
         Dataset,
         batch_size=256,
         shuffle = True,
         num_workers=0) 
-# joint_used = np.array([2, 9, 16, 7, 14, 13, 20])
-joint_used = np.array([12, 16, 17, 18, 19, 20, 21])
+
+pretrained = True
+
 
 lr_lst = [1e-3, 3e-4, 1e-4]
 epoch_lst = [5, 10, 15, 20]
 import itertools
 for lr, epochs in itertools.product(lr_lst, epoch_lst):
     model_path = './checkpoints/finetune_' + str(epochs) + '_' + "%.0e" % lr + '/amass_3d_25frames_ckpt'
-    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    if not pretrained:
+        model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()
     val_loss = []
     val_fde_loss = []
@@ -76,7 +82,10 @@ for lr, epochs in itertools.product(lr_lst, epoch_lst):
     print(model_path)
     print(val_loss)
     print(val_fde_loss)
-
-    with open('./checkpoints/finetune_' + str(epochs) + '_' + "%.0e" % lr + '/loss.txt', 'w') as f:
-        f.write(f'{val_loss},{val_fde_loss}')
-        print('wrote')
+    
+    if not pretrained:
+        with open('./checkpoints/finetune_' + str(epochs) + '_' + "%.0e" % lr + '/loss.txt', 'w') as f:
+            f.write(f'{val_loss},{val_fde_loss}')
+            print('wrote')
+    else:
+        break
