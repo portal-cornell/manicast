@@ -16,6 +16,8 @@ from utils.amass_3d_viz import visualize
 from utils.parser import args
 from utils.mocap_3d import Datasets as MoCapDatasets
 from utils.read_json_data import read_json
+import itertools
+import json
 
 
 
@@ -163,9 +165,9 @@ def test():
                 accum_loss+=loss*batch_dim
         print('overall average loss in mm is: '+str(accum_loss/n))
 
-def finetune():
-    FINETUNE_LR = 1e-3
-    FINETUNE_EPOCHS = 10
+def finetune(lr, epochs, folder_name, Dataset, Dataset_val):
+    FINETUNE_LR = lr
+    FINETUNE_EPOCHS = epochs
     model.load_state_dict(torch.load(os.path.join('./checkpoints/pretrained',model_name)))
 
     optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR)
@@ -179,14 +181,14 @@ def finetune():
     val_loss = []
     val_fde_loss = []
     model.train()
-    Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
+    
     loader_train = DataLoader(
         Dataset,
         batch_size=256,
         shuffle = True,
         num_workers=0)    
 
-    Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
+   
 
     loader_val = DataLoader(
         Dataset_val,
@@ -252,19 +254,20 @@ def finetune():
         train_fde_loss.append(running_fde_loss.detach().cpu()/n)
         
 
-        if (epoch+1)%10==0:
+        if (epoch+1)%5==0:
             print('----saving model-----')
-            torch.save(model.state_dict(),os.path.join(args.model_path,model_name))
+            torch.save(model.state_dict(),os.path.join(folder_name,model_name))
 
 
 
-            plt.figure(1)
-            plt.plot(train_loss, 'r', label='Train loss')
-            plt.plot(val_loss, 'g', label='Val mpjpe loss')
-            plt.plot(val_fde_loss, 'b', label='Val fde loss')
-            plt.legend()
-            plt.show()
+            # plt.figure(1)
+            # plt.plot(train_loss, 'r', label='Train loss')
+            # plt.plot(val_loss, 'g', label='Val mpjpe loss')
+            # plt.plot(val_fde_loss, 'b', label='Val fde loss')
+            # plt.legend()
+            # plt.show()
         print("HERE")
+    return train_loss, train_fde_loss, val_loss, val_fde_loss
 
 
 if __name__ == '__main__':
@@ -283,8 +286,34 @@ if __name__ == '__main__':
         visualize(args.input_n,args.output_n,args.visualize_from,args.data_dir,model,device,args.n_viz,args.skip_rate)
     elif args.mode == 'finetune':
         """
-        python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --mode finetune --model_path ./checkpoints/finetune_moredata
+        python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --mode finetune
         """
-        finetune()
+        # Check if the folder already exists
+        lr_lst = [1e-3, 3e-4, 1e-4]
+        epoch_lst = [5, 10, 15, 20]
+        Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
+        Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
+        
+        for lr, epochs in itertools.product(lr_lst, epoch_lst):
+            folder_name = './checkpoints/finetune_' + str(epochs) + '_' + "%.0e" % lr
+            if os.path.exists(folder_name):
+                print("Folder already exists!")
+            else:
+                # Create the folder/directory
+                os.makedirs(folder_name)
+                print("Folder created successfully!")
+            train_loss, train_fde_loss, val_loss, val_fde_loss = finetune(lr, epochs, folder_name, Dataset, Dataset_val)
+            print(f'Epochs: {epochs}, Learning Rate: {lr}')
+            print(f'Train (MPJPE): {train_loss[-1]}, (FDE): {train_fde_loss[-1]}')
+            print(f'Val (MPJPE): {val_loss[-1]}, (FDE): {val_fde_loss[-1]}')
+            data = {
+                'epochs': epochs,
+                'lr': lr,
+                'train_mpjpe': train_loss,
+                'train_fde': train_fde_loss
+            }
+            # Write the dictionary to a JSON file
+            with open(folder_name + '/info.json', 'w') as json_file:
+                json.dump(data, json_file)
 
 
