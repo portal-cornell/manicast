@@ -257,6 +257,10 @@ def finetune(lr, epochs, folder_name, Dataset, Dataset_val):
         if (epoch+1)%5==0:
             print('----saving model-----')
             torch.save(model.state_dict(),os.path.join(folder_name,model_name))
+            with open(folder_name + '/train_val_loss.txt', 'w') as f:
+                f.write(f'Train\n{np.array(train_loss).mean()},{np.array(train_fde_loss).mean()}\n')
+                f.write(f'Val\n{np.array(val_loss).mean()},{np.array(val_fde_loss).mean()}\n')
+                print('wrote')
 
 
 
@@ -289,13 +293,15 @@ if __name__ == '__main__':
         python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --mode finetune
         """
         # Check if the folder already exists
-        lr_lst = [1e-3, 3e-4, 1e-4]
-        epoch_lst = [5, 10, 15, 20]
+        # lr_lst = [1e-3, 3e-4, 1e-4]
+        # epoch_lst = [5, 10, 15, 20]
+        lr_lst = [3e-4]
+        epoch_lst = [10]
         Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
         Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
         
         for lr, epochs in itertools.product(lr_lst, epoch_lst):
-            folder_name = './checkpoints/finetune_' + str(epochs) + '_' + "%.0e" % lr
+            folder_name = './checkpoints/smaller_finetune_' + str(epochs) + '_' + "%.0e" % lr
             if os.path.exists(folder_name):
                 print("Folder already exists!")
             else:
@@ -309,8 +315,10 @@ if __name__ == '__main__':
             data = {
                 'epochs': epochs,
                 'lr': lr,
-                'train_mpjpe': train_loss,
-                'train_fde': train_fde_loss
+                'train_mpjpe': train_loss[-1].item(),
+                'train_fde': train_fde_loss[-1].item(),
+                'val_mpjpe': val_loss[-1].item(),
+                'val_fde': val_fde_loss[-1].item()
             }
             # Write the dictionary to a JSON file
             with open(folder_name + '/info.json', 'w') as json_file:
