@@ -23,18 +23,14 @@ data : python object where keys are names of skeletons mapped to (frames, joints
 skeleton_name : name of the skeleton (Kushal or Prithwish)
 fps : frame rate at which we want to downsample to
 """
-def get_pose_history(data, skeleton_name, fps):
-    tensor = torch.tensor(data[skeleton_name])
-    skip_rate = int(round(120/fps))
-    select_frames = torch.tensor(range(len(tensor)//skip_rate))*skip_rate
-    skipped_frames = tensor[select_frames]
-    return skipped_frames
+def get_pose_history(data, skeleton_name):
+    return torch.tensor(data[skeleton_name])
 
 if __name__ == "__main__":
     mapping = read_json('./mapping.json')
     print(mapping)
     json_data = read_json('./chopping_stirring_data/chopping_stirring_0.json')
-    kushal_tensor = get_pose_history(json_data, "Kushal", 25)
+    kushal_tensor = get_pose_history(json_data, "Kushal")
     print(kushal_tensor.shape)
-    prithwish_tensor = get_pose_history(json_data, "Prithwish", 25)
+    prithwish_tensor = get_pose_history(json_data, "Prithwish")
     print(prithwish_tensor.shape)

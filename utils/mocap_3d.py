@@ -35,16 +35,16 @@ class Datasets(Dataset):
                 print(f'Episode: {self.data_dir}/{ds}/{episode}')
                 json_data = read_json(f'{self.data_dir}/{ds}/{episode}')
                 for skeleton_name in names:
-                    tensor = get_pose_history(json_data, skeleton_name, self.sample_rate)
+                    tensor = get_pose_history(json_data, skeleton_name)
                     # chop the tensor into a bunch of slices of size sequence_len
-                    for start_frame in range(tensor.shape[0]-sequence_len):
-                        end_frame = start_frame + sequence_len
+                    for start_frame in range(tensor.shape[0]-(sequence_len*self.sample_rate)):
+                        end_frame = start_frame + (sequence_len*self.sample_rate)
                         self.data_lst.append(tensor[start_frame:end_frame, :, :])
         # if any(t.shape[0] != 35 for t in self.data_lst):
         #     print('last sequence is not long enough')
         for idx, seq in enumerate(self.data_lst):
             self.data_lst[idx] = seq[:, :, :] - seq[input_n-1:input_n, 21:22, :]
-        print(len(self.data_lst))
+        print('here')
 
 
     def __len__(self):
@@ -52,7 +52,10 @@ class Datasets(Dataset):
 
     def __getitem__(self, idx):
         # each element of the data list is of shape (sequence length, 25 joints, 3d)
-        return self.data_lst[idx]
+        skip_rate = int(round(120/self.sample_rate))
+        select_frames = torch.tensor(range(len(self.data_lst[idx])//skip_rate))*skip_rate
+        skipped_frames = self.data_lst[idx][select_frames]
+        return skipped_frames
 
 
 

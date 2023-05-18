@@ -9,7 +9,7 @@ import torch.autograd
 import matplotlib.pyplot as plt
 from model import *
 from utils.ang2joint import *
-from utils.loss_funcs import mpjpe_error
+from utils.loss_funcs import mpjpe_error, fde_error
 from utils.amass_3d import *
 #from utils.dpw3d import * # choose amass or 3dpw by importing the right dataset class
 from utils.amass_3d_viz import visualize
@@ -166,7 +166,7 @@ def test():
 def finetune():
     FINETUNE_LR = 1e-3
     FINETUNE_EPOCHS = 10
-    model.load_state_dict(torch.load(os.path.join('/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/mocap_new',model_name)))
+    model.load_state_dict(torch.load(os.path.join('./checkpoints/mocap_new',model_name)))
 
     optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR)
 
@@ -175,12 +175,14 @@ def finetune():
 
 
     train_loss = []
+    train_fde_loss = []
     val_loss = []
+    val_fde_loss = []
     model.train()
     Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
     loader_train = DataLoader(
         Dataset,
-        batch_size=64,
+        batch_size=256,
         shuffle = True,
         num_workers=0)    
 
@@ -188,7 +190,7 @@ def finetune():
 
     loader_val = DataLoader(
         Dataset_val,
-        batch_size=128,
+        batch_size=256,
         shuffle = True,
         num_workers=0)                          
     # joint_used=np.arange(4,22)
@@ -200,10 +202,10 @@ def finetune():
     # use joints from mapping.json
 
     for epoch in range(FINETUNE_EPOCHS):
-        
         model.eval()
         with torch.no_grad():
             running_loss=0
+            running_fde_loss=0
             n=0
             for cnt,batch in enumerate(loader_val): 
                 batch = batch.float().to(device)[:, :, joint_used]
@@ -214,10 +216,14 @@ def finetune():
                 sequences_predict_gt=batch[:,args.input_n:args.input_n+args.output_n,:,:]
                 sequences_predict=model(sequences_train)
                 loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
+                fde_loss=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
                 if cnt % 200 == 0:
-                    print('[%d, %5d]  validation loss: %.3f' %(epoch + 1, cnt + 1, loss.item()))                    
+                    print('[%d, %5d]  validation loss (mpjpe): %.3f' %(epoch + 1, cnt + 1, loss.item()))      
+                    print('[%d, %5d]  validation loss (fde): %.3f' %(epoch + 1, cnt + 1, fde_loss.item()))                
                 running_loss+=loss*batch_dim
+                running_fde_loss+=fde_loss*batch_dim
             val_loss.append(running_loss.detach().cpu()/n)
+            val_fde_loss.append(running_fde_loss.detach().cpu()/n)
             if args.use_scheduler:
                 scheduler.step()
         running_loss=0
@@ -233,6 +239,7 @@ def finetune():
             optimizer.zero_grad()
             sequences_predict=model(sequences_train)
             loss=mpjpe_error(sequences_predict.permute(0, 1, 3, 2),sequences_predict_gt)*1000# # both must have format (batch,T,V,C)
+            fde_loss=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
             if cnt % 200 == 0:
                 print('[%d, %5d]  training loss: %.3f' %(epoch + 1, cnt + 1, loss.item()))             
             loss.backward()
@@ -240,7 +247,9 @@ def finetune():
                 torch.nn.utils.clip_grad_norm_(model.parameters(),args.clip_grad)
             optimizer.step()
             running_loss += loss*batch_dim
+            running_fde_loss+=fde_loss*batch_dim
         train_loss.append(running_loss.detach().cpu()/n)
+        train_fde_loss.append(running_fde_loss.detach().cpu()/n)
         
 
         if (epoch+1)%10==0:
@@ -251,7 +260,8 @@ def finetune():
 
             plt.figure(1)
             plt.plot(train_loss, 'r', label='Train loss')
-            plt.plot(val_loss, 'g', label='Val loss')
+            plt.plot(val_loss, 'g', label='Val mpjpe loss')
+            plt.plot(val_fde_loss, 'b', label='Val fde loss')
             plt.legend()
             plt.show()
         print("HERE")
@@ -273,7 +283,7 @@ if __name__ == '__main__':
         visualize(args.input_n,args.output_n,args.visualize_from,args.data_dir,model,device,args.n_viz,args.skip_rate)
     elif args.mode == 'finetune':
         """
-        python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --mode finetune --model_path ./checkpoints/finetune_tmp
+        python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --mode finetune --model_path ./checkpoints/finetune_moredata
         """
         finetune()
 
