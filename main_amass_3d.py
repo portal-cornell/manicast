@@ -18,6 +18,7 @@ from utils.mocap_3d import Datasets as MoCapDatasets
 from utils.read_json_data import read_json
 import itertools
 import json
+from torch.utils.tensorboard import SummaryWriter
 
 
 
@@ -165,12 +166,13 @@ def test():
                 accum_loss+=loss*batch_dim
         print('overall average loss in mm is: '+str(accum_loss/n))
 
-def finetune(lr, epochs, folder_name, Dataset, Dataset_val):
+def finetune(lr, epochs, folder_name, model_n, Dataset, Dataset_val):
+    writer = SummaryWriter(log_dir='./logs/' + model_n)
     FINETUNE_LR = lr
     FINETUNE_EPOCHS = epochs
     model.load_state_dict(torch.load(os.path.join('./checkpoints/pretrained',model_name)))
 
-    optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR)
+    optimizer=optim.Adam(model.parameters(),lr=FINETUNE_LR,weight_decay=1e-5)
 
     if args.use_scheduler:
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=args.gamma)
@@ -224,6 +226,9 @@ def finetune(lr, epochs, folder_name, Dataset, Dataset_val):
                     print('[%d, %5d]  validation loss (fde): %.3f' %(epoch + 1, cnt + 1, fde_loss.item()))                
                 running_loss+=loss*batch_dim
                 running_fde_loss+=fde_loss*batch_dim
+                step = epoch * len(loader_train) + cnt
+                writer.add_scalar('Validation MPJPE Loss', loss.item(), step)
+                writer.add_scalar('Validation FDE Loss', fde_loss.item(), step)
             val_loss.append(running_loss.detach().cpu()/n)
             val_fde_loss.append(running_fde_loss.detach().cpu()/n)
             if args.use_scheduler:
@@ -250,11 +255,15 @@ def finetune(lr, epochs, folder_name, Dataset, Dataset_val):
             optimizer.step()
             running_loss += loss*batch_dim
             running_fde_loss+=fde_loss*batch_dim
+
+            step = epoch * len(loader_train) + cnt
+            writer.add_scalar('Train MPJPE Loss', loss.item(), step)
+            writer.add_scalar('Train FDE Loss', fde_loss.item(), step)
         train_loss.append(running_loss.detach().cpu()/n)
         train_fde_loss.append(running_fde_loss.detach().cpu()/n)
         
 
-        if (epoch+1)%5==0:
+        if (epoch+1)%1==0:
             print('----saving model-----')
             torch.save(model.state_dict(),os.path.join(folder_name,model_name))
             with open(folder_name + '/train_val_loss.txt', 'w') as f:
@@ -271,11 +280,11 @@ def finetune(lr, epochs, folder_name, Dataset, Dataset_val):
             # plt.legend()
             # plt.show()
         print("HERE")
+    writer.close()
     return train_loss, train_fde_loss, val_loss, val_fde_loss
 
 
 if __name__ == '__main__':
-
     if args.mode == 'train':
         """
         python main_amass_3d.py --input_n 10 --output_n 25 --joints_to_consider 7 --model_path ./checkpoints/prefinetune3 --skip_rate 5
@@ -295,20 +304,21 @@ if __name__ == '__main__':
         # Check if the folder already exists
         # lr_lst = [1e-3, 3e-4, 1e-4]
         # epoch_lst = [5, 10, 15, 20]
-        lr_lst = [3e-4]
-        epoch_lst = [10]
+        lr_lst = [3e-4, 1e-4, 1e-5]
+        epoch_lst = [1,2,5,7]
         Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
         Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
         
         for lr, epochs in itertools.product(lr_lst, epoch_lst):
-            folder_name = './checkpoints/smaller_finetune_' + str(epochs) + '_' + "%.0e" % lr
+            model_n = 'weightdecay_finetune_' + str(epochs) + '_' + "%.0e" % lr
+            folder_name = './checkpoints/' + model_n
             if os.path.exists(folder_name):
                 print("Folder already exists!")
             else:
                 # Create the folder/directory
                 os.makedirs(folder_name)
                 print("Folder created successfully!")
-            train_loss, train_fde_loss, val_loss, val_fde_loss = finetune(lr, epochs, folder_name, Dataset, Dataset_val)
+            train_loss, train_fde_loss, val_loss, val_fde_loss = finetune(lr, epochs, folder_name, model_n, Dataset, Dataset_val)
             print(f'Epochs: {epochs}, Learning Rate: {lr}')
             print(f'Train (MPJPE): {train_loss[-1]}, (FDE): {train_fde_loss[-1]}')
             print(f'Val (MPJPE): {val_loss[-1]}, (FDE): {val_fde_loss[-1]}')
