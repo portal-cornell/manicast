@@ -14,7 +14,7 @@ import torch
 import math
 
 # model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
-model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/finetune_tmp/amass_3d_25frames_ckpt'
+model_path = '/home/portal/human_forecasting/Human_Motion_Forecasting/checkpoints/finetune_5_1e-04/amass_3d_25frames_ckpt'
 
 input_dim = 3
 input_n = 10
@@ -39,7 +39,7 @@ cylinder_color = [0,1,0]
 radius = 0.45
 
 in_collision = False
-FRAME = 'mocap' #change to mocap when integrating
+FRAME = 'map' #change to mocap when integrating
 
 
 joint_history = {}
@@ -122,6 +122,10 @@ def publish_forecasts(sequences_predict, current_pose, history_pose):
 
     # extra edges to connect the pose back to the hips
     extra_edges = [(1, 7), (7, 8), (8, 2)]
+
+    relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',
+                       'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut',
+                       'WaistLBack', 'WaistRBack']
     
     # creates the poses for the true current pose
     # indices 0-8
@@ -129,6 +133,7 @@ def publish_forecasts(sequences_predict, current_pose, history_pose):
         marker = Marker()
         marker.header.frame_id = FRAME
         marker.type = marker.LINE_LIST
+        marker.ns = 'current-' + relevant_joints[edge[0]] + '_' + relevant_joints[edge[1]]
         marker.id = idx
         marker.scale.x = 0.02
         marker.action = marker.ADD 
@@ -178,6 +183,7 @@ def publish_forecasts(sequences_predict, current_pose, history_pose):
             marker = Marker()
             marker.header.frame_id = FRAME
             marker.type = marker.LINE_LIST
+            marker.ns = f'future{time}-' + relevant_joints[edge[0]] + '_' + relevant_joints[edge[1]]
             marker.id = (i+2)*9 + idx
             marker.scale.x = 0.02
             marker.action = marker.ADD 

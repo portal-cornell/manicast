@@ -165,7 +165,7 @@ def test():
                 accum_loss+=loss*batch_dim
         print('overall average loss in mm is: '+str(accum_loss/n))
 
-def finetune(lr, epochs, folder_name, Dataset, Dataset_val):
+def finetune(lr, epochs, folder_name, DatasetA, Dataset_val):
     FINETUNE_LR = lr
     FINETUNE_EPOCHS = epochs
     model.load_state_dict(torch.load(os.path.join('./checkpoints/pretrained',model_name)))
@@ -183,7 +183,7 @@ def finetune(lr, epochs, folder_name, Dataset, Dataset_val):
     model.train()
     
     loader_train = DataLoader(
-        Dataset,
+        DatasetA,
         batch_size=256,
         shuffle = True,
         num_workers=0)    
@@ -254,7 +254,7 @@ def finetune(lr, epochs, folder_name, Dataset, Dataset_val):
         train_fde_loss.append(running_fde_loss.detach().cpu()/n)
         
 
-        if (epoch+1)%5==0:
+        if (epoch+1)%2==0:
             print('----saving model-----')
             torch.save(model.state_dict(),os.path.join(folder_name,model_name))
             with open(folder_name + '/train_val_loss.txt', 'w') as f:
@@ -296,8 +296,8 @@ if __name__ == '__main__':
         # lr_lst = [1e-3, 3e-4, 1e-4]
         # epoch_lst = [5, 10, 15, 20]
         lr_lst = [3e-4]
-        epoch_lst = [10]
-        Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
+        epoch_lst = [2]
+        DatasetA = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
         Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
         
         for lr, epochs in itertools.product(lr_lst, epoch_lst):
@@ -308,7 +308,7 @@ if __name__ == '__main__':
                 # Create the folder/directory
                 os.makedirs(folder_name)
                 print("Folder created successfully!")
-            train_loss, train_fde_loss, val_loss, val_fde_loss = finetune(lr, epochs, folder_name, Dataset, Dataset_val)
+            train_loss, train_fde_loss, val_loss, val_fde_loss = finetune(lr, epochs, folder_name, DatasetA, Dataset_val)
             print(f'Epochs: {epochs}, Learning Rate: {lr}')
             print(f'Train (MPJPE): {train_loss[-1]}, (FDE): {train_fde_loss[-1]}')
             print(f'Val (MPJPE): {val_loss[-1]}, (FDE): {val_fde_loss[-1]}')
