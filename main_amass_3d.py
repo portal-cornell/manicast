@@ -9,7 +9,7 @@ import torch.autograd
 import matplotlib.pyplot as plt
 from model import *
 from utils.ang2joint import *
-from utils.loss_funcs import mpjpe_error, fde_error
+from utils.loss_funcs import mpjpe_error, fde_error, weighted_mpjpe_error
 from utils.amass_3d import *
 #from utils.dpw3d import * # choose amass or 3dpw by importing the right dataset class
 from utils.amass_3d_viz import visualize
@@ -177,6 +177,7 @@ def finetune(lr, epochs, folder_name, model_n, Dataset, Dataset_val):
     if args.use_scheduler:
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=args.gamma)
 
+    joint_weights_base = torch.tensor([1, 1, 1, 2, 2, 2, 2]).float().to(device)
 
     train_loss = []
     train_fde_loss = []
@@ -221,6 +222,12 @@ def finetune(lr, epochs, folder_name, model_n, Dataset, Dataset_val):
                 sequences_predict=model(sequences_train)
                 loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
                 fde_loss=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
+                
+                joint_weights = joint_weights_base.unsqueeze(0).unsqueeze(0).unsqueeze(3)
+                N, T, V, C = sequences_predict_gt.shape[0], sequences_predict_gt.shape[1], sequences_predict_gt.shape[2], sequences_predict_gt.shape[3]
+                joint_weights = joint_weights.expand(N, T, V, C)
+                weighted_loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
+
                 if cnt % 200 == 0:
                     print('[%d, %5d]  validation loss (mpjpe): %.3f' %(epoch + 1, cnt + 1, loss.item()))      
                     print('[%d, %5d]  validation loss (fde): %.3f' %(epoch + 1, cnt + 1, fde_loss.item()))                
@@ -247,6 +254,12 @@ def finetune(lr, epochs, folder_name, model_n, Dataset, Dataset_val):
             sequences_predict=model(sequences_train)
             loss=mpjpe_error(sequences_predict.permute(0, 1, 3, 2),sequences_predict_gt)*1000# # both must have format (batch,T,V,C)
             fde_loss=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
+
+            joint_weights = joint_weights_base.unsqueeze(0).unsqueeze(0).unsqueeze(3)
+            N, T, V, C = sequences_predict_gt.shape[0], sequences_predict_gt.shape[1], sequences_predict_gt.shape[2], sequences_predict_gt.shape[3]
+            joint_weights = joint_weights.expand(N, T, V, C)
+            weighted_loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
+
             if cnt % 200 == 0:
                 print('[%d, %5d]  training loss: %.3f' %(epoch + 1, cnt + 1, loss.item()))             
             loss.backward()
@@ -304,7 +317,7 @@ if __name__ == '__main__':
         # Check if the folder already exists
         # lr_lst = [1e-3, 3e-4, 1e-4]
         # epoch_lst = [5, 10, 15, 20]
-        lr_lst = [3e-4, 1e-4, 1e-5]
+        lr_lst = [1e-4, 1e-5]
         epoch_lst = [1,2,5,7]
         Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
         Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)

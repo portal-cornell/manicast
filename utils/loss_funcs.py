@@ -19,6 +19,16 @@ def fde_error(batch_pred,batch_gt):
     batch_gt=batch_gt[:,-1,:,:].contiguous().view(-1,3)
 
     return torch.mean(torch.norm(batch_gt-batch_pred,2,1))
+
+def weighted_mpjpe_error(batch_pred,batch_gt, joint_weights): 
+    # 'BackTop', 'LShoulderBack', 'RShoulderBack',
+    #                   'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut'
+    batch_pred=batch_pred.contiguous()
+    batch_gt=batch_gt.contiguous()
+    diff = batch_gt - batch_pred
+    diff *= joint_weights
+
+    return torch.mean(torch.norm(diff.view(-1,3),2,1))
     
     
 def euler_error(ang_pred, ang_gt):

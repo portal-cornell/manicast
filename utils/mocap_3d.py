@@ -24,15 +24,18 @@ class Datasets(Dataset):
         mocap_splits = [
             [
                 'chopping_mixing_data/train',
-             'chopping_stirring_data/train'
-             ],
+                # 'chopping_stirring_data/train',
+                # 'stirring_reaction_data/train'
+            ],
             [
                 'chopping_mixing_data/val',
-             'chopping_stirring_data/val',
-             ],
+                'chopping_stirring_data/val',
+                'stirring_reaction_data/val'
+            ],
             [
                 'chopping_mixing_data/test',
-            'chopping_stirring_data/test'
+                'chopping_stirring_data/test',
+                'stirring_reaction_data/test'
             ],
         ]
         names = ["Kushal", "Prithwish"]
@@ -59,9 +62,12 @@ class Datasets(Dataset):
                         continue
                     tensor = get_pose_history(json_data, skeleton_name)
                     # chop the tensor into a bunch of slices of size sequence_len
-                    for start_frame in range(tensor.shape[0]-(sequence_len*self.sample_rate)):
-                        end_frame = start_frame + (sequence_len*self.sample_rate)
-                        self.data_lst.append(tensor[start_frame:end_frame, :, :])
+                    skip_rate = int(round(120/self.sample_rate))
+                    select_frames = torch.tensor(range(len(tensor)//skip_rate))*skip_rate
+                    skipped_frames = tensor[select_frames]
+                    for start_frame in range(skipped_frames.shape[0]-sequence_len):
+                        end_frame = start_frame + sequence_len
+                        self.data_lst.append(skipped_frames[start_frame:end_frame, :, :])
         for idx, seq in enumerate(self.data_lst):
             self.data_lst[idx] = seq[:, :, :] - seq[input_n-1:input_n, 21:22, :]
 
@@ -71,10 +77,7 @@ class Datasets(Dataset):
 
     def __getitem__(self, idx):
         # each element of the data list is of shape (sequence length, 25 joints, 3d)
-        skip_rate = int(round(120/self.sample_rate))
-        select_frames = torch.tensor(range(len(self.data_lst[idx])//skip_rate))*skip_rate
-        skipped_frames = self.data_lst[idx][select_frames]
-        return skipped_frames
+        return self.data_lst[idx]
 
 
 
