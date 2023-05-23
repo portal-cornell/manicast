@@ -51,6 +51,12 @@ class Datasets(Dataset):
             ['BioMotionLab_NTroje'],
         ]
 
+        # amass_splits = [
+        #     ['SFU'],
+        #     ['SFU',],
+        #     ['SFU'],
+        # ]
+
 
         # # original splits below
         # amass_splits = [

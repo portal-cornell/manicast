@@ -23,19 +23,22 @@ class Datasets(Dataset):
 
         mocap_splits = [
             [
-                'chopping_mixing_data/train',
+                # 'chopping_mixing_data/train',
                 # 'chopping_stirring_data/train',
-                # 'stirring_reaction_data/train'
+                'stirring_reaction_data/train',
+                # 'table_setting_data/train',
             ],
             [
-                'chopping_mixing_data/val',
-                'chopping_stirring_data/val',
-                'stirring_reaction_data/val'
+                # 'chopping_mixing_data/val',
+                # 'chopping_stirring_data/val',
+                'stirring_reaction_data/val',
+                # 'table_setting_data/val',
             ],
             [
-                'chopping_mixing_data/test',
-                'chopping_stirring_data/test',
-                'stirring_reaction_data/test'
+                # 'chopping_mixing_data/test',
+                # 'chopping_stirring_data/test',
+                # 'stirring_reaction_data/test',
+                'table_setting_data/test',
             ],
         ]
         names = ["Kushal", "Prithwish"]

@@ -29,7 +29,13 @@ def weighted_mpjpe_error(batch_pred,batch_gt, joint_weights):
     diff *= joint_weights
 
     return torch.mean(torch.norm(diff.view(-1,3),2,1))
-    
+
+def perjoint_error(batch_pred, batch_gt):
+    batch_pred = batch_pred.contiguous()
+    batch_gt=batch_gt.contiguous()
+    diff = batch_gt - batch_pred
+    batch_joint_errors = torch.mean(torch.norm(diff,2,3), 1)
+    return torch.mean(batch_joint_errors,0)
     
 def euler_error(ang_pred, ang_gt):
 
