@@ -21,9 +21,9 @@ print('Using device: %s'%device)
 def train(model, writer, joint_used, joint_names, model_name, joint_weights):
     optimizer=optim.Adam(model.parameters(),lr=1e-4,weight_decay=1e-05)
 
-    Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
-    Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
-    Dataset_test = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
+    Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=12.5,split=0)
+    Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=12.5,split=1)
+    Dataset_test = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=12.5,split=2)
 
     loader_train = DataLoader(
         Dataset,

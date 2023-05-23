@@ -97,6 +97,7 @@ def get_marker_array(current_joints, future_joints, forecast_joints):
 model_folder = '/home/portal/Human_Motion_Forecasting/checkpoints/'
 model_path = f'{model_folder}/finetune_5_1e-03/amass_3d_25frames_ckpt'
 model_path = f'{model_folder}/finetuned_stirring_reaction_weighted/19_amass_3d_25frames_ckpt'
+model_path = f'{model_folder}/finetuned_stirring_reaction_2s/49_amass_3d_25frames_ckpt'
 # model_path = /home/portal/Human_Motion_Forecasting/checkpoints/
 episode_folder = "/home/portal/Human_Motion_Forecasting/mocap_data/"
 activity = "stirring_reaction"
