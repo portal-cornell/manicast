@@ -8,6 +8,9 @@ from utils.ang2joint import *
 from utils.loss_funcs import mpjpe_error, fde_error, weighted_mpjpe_error, perjoint_error
 from utils.amass_3d import *
 from utils.parser import args
+from utils.mocap_3d import Datasets as MoCapDatasets
+from utils.stirring_reaction_transition import StirringReactionTransitions
+from utils.read_json_data import read_json
 from torch.utils.tensorboard import SummaryWriter
 import pathlib
 
@@ -15,33 +18,55 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 print('Using device: %s'%device)
 
-
 def train(model, writer, joint_used, joint_names, model_name, joint_weights):
-    optimizer=optim.Adam(model.parameters(),lr=args.lr,weight_decay=1e-05)
+    optimizer=optim.Adam(model.parameters(),lr=1e-4,weight_decay=1e-05)
 
-    if args.use_scheduler:
-        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=args.gamma)
-    
-    Dataset = Datasets(args.data_dir,args.input_n,args.output_n,args.skip_rate,split=0)
+    Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
+    Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
+    Dataset_test = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
+
+    Dataset_transitions_train = StirringReactionTransitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
+    Dataset_transitions_val = StirringReactionTransitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
+    Dataset_transitions_test = StirringReactionTransitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
+
+
     loader_train = DataLoader(
         Dataset,
         batch_size=args.batch_size,
         shuffle = True,
         num_workers=0)    
-
-    Dataset_val = Datasets(args.data_dir,args.input_n,args.output_n,args.skip_rate,split=1)
+    
     loader_val = DataLoader(
         Dataset_val,
         batch_size=args.batch_size,
         shuffle = True,
         num_workers=0)      
 
-    Dataset = Datasets(args.data_dir,args.input_n,args.output_n,args.skip_rate,split=2)
     loader_test = DataLoader(
-        Dataset,
+        Dataset_test,
         batch_size=args.batch_size,
         shuffle =False,
-        num_workers=0)                    
+        num_workers=0)
+
+
+
+    loader_transition_train = DataLoader(
+        Dataset_transitions_train,
+        batch_size=args.batch_size,
+        shuffle = True,
+        num_workers=0)    
+    
+    loader_transition_val = DataLoader(
+        Dataset_transitions_val,
+        batch_size=args.batch_size,
+        shuffle = True,
+        num_workers=0)      
+
+    loader_transition_test = DataLoader(
+        Dataset_transitions_test,
+        batch_size=args.batch_size,
+        shuffle =False,
+        num_workers=0)         
 
     model.train()
     for epoch in range(args.n_epochs):
@@ -50,7 +75,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         running_fde=0
         n=0
         model.train()
-        for cnt,batch in enumerate(loader_train): 
+        for cnt,(batch, batch2) in enumerate(zip(loader_train, loader_transition_train)): 
             batch = batch.float().to(device)[:, :, joint_used] # multiply by 1000 for milimeters
             batch_dim=batch.shape[0]
             n+=batch_dim
@@ -70,8 +95,27 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
             running_loss += loss*batch_dim
             running_per_joint_error += per_joint_error*batch_dim
             running_fde += fde*batch_dim
-        if args.use_scheduler:
-            scheduler.step()
+
+            batch2 = batch2.float().to(device)[:, :, joint_used] # multiply by 1000 for milimeters
+            batch_dim=batch2.shape[0]
+            n+=batch_dim
+            sequences_train=batch2[:,0:args.input_n,:,:].permute(0,3,1,2)
+            sequences_predict_gt=batch2[:,args.input_n:args.input_n+args.output_n,:,:]
+            optimizer.zero_grad()
+            sequences_predict=model(sequences_train)
+            # import pdb; pdb.set_trace()
+            loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
+            # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
+            per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
+            fde=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000          
+            loss.backward()
+            if args.clip_grad is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(),args.clip_grad)
+            optimizer.step()
+            running_loss += loss*batch_dim
+            running_per_joint_error += per_joint_error*batch_dim
+            running_fde += fde*batch_dim
+
         print('[%d]  training loss: %.3f' %(epoch + 1, running_loss.item()/n))  
         writer.add_scalar('train/mpjpe', running_loss.item()/n, epoch)
         writer.add_scalar('train/fde', running_fde.item()/n, epoch)
@@ -84,7 +128,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         running_fde=0
         n=0
         with torch.no_grad():
-            for cnt,batch in enumerate(loader_val): 
+            for cnt,(batch, batch2) in enumerate(zip(loader_val, loader_transition_val)): 
                 batch = batch.float().to(device)[:, :, joint_used]
                 batch_dim=batch.shape[0]
                 n+=batch_dim
@@ -98,6 +142,21 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
                 running_loss += loss*batch_dim
                 running_per_joint_error += per_joint_error*batch_dim
                 running_fde += fde*batch_dim
+
+                batch2 = batch2.float().to(device)[:, :, joint_used]
+                batch_dim=batch2.shape[0]
+                n+=batch_dim
+                sequences_train=batch2[:,0:args.input_n,:,:].permute(0,3,1,2)
+                sequences_predict_gt=batch2[:,args.input_n:args.input_n+args.output_n,:,:]
+                sequences_predict=model(sequences_train)
+                loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
+                # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
+                per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
+                fde=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000   
+                running_loss += loss*batch_dim
+                running_per_joint_error += per_joint_error*batch_dim
+                running_fde += fde*batch_dim
+                
         print('[%d]  validation loss: %.3f' %(epoch + 1, running_loss.item()/n))  
         writer.add_scalar('val/mpjpe', running_loss.item()/n, epoch)
         writer.add_scalar('val/fde', running_fde.item()/n, epoch)
@@ -109,7 +168,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         running_fde=0
         n=0
         with torch.no_grad():
-            for cnt,batch in enumerate(loader_test): 
+            for cnt,(batch, batch2) in enumerate(zip(loader_test, loader_transition_test)): 
                 batch = batch.float().to(device)[:, :, joint_used]
                 batch_dim=batch.shape[0]
                 n+=batch_dim
@@ -123,6 +182,21 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
                 running_loss += loss*batch_dim
                 running_per_joint_error += per_joint_error*batch_dim
                 running_fde += fde*batch_dim
+
+                batch2 = batch2.float().to(device)[:, :, joint_used]
+                batch_dim=batch2.shape[0]
+                n+=batch_dim
+                sequences_train=batch2[:,0:args.input_n,:,:].permute(0,3,1,2)
+                sequences_predict_gt=batch2[:,args.input_n:args.input_n+args.output_n,:,:]
+                sequences_predict=model(sequences_train)
+                loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
+                # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
+                per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
+                fde=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000   
+                running_loss += loss*batch_dim
+                running_per_joint_error += per_joint_error*batch_dim
+                running_fde += fde*batch_dim
+
         print('[%d]  testing loss: %.3f' %(epoch + 1, running_loss.item()/n))  
         writer.add_scalar('test/mpjpe', running_loss.item()/n, epoch)
         writer.add_scalar('test/fde', running_fde.item()/n, epoch)
@@ -140,12 +214,15 @@ if __name__ == '__main__':
     weight = args.weight
     joint_weights_base = torch.tensor([1, 1, 1, 2, 2, weight, weight]).float().to(device)
     joint_weights = joint_weights_base.unsqueeze(0).unsqueeze(0).unsqueeze(3)
-    joint_used = np.array([12, 16, 17, 18, 19, 20, 21])
     joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',
                       'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut']
+    mapping = read_json('./mapping.json')
+    joint_used = np.array([mapping[joint_name] for joint_name in joint_names])
     model = Model(args.input_dim,args.input_n,
                            args.output_n,args.st_gcnn_dropout,args.joints_to_consider,args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to(device)
     model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
+
+    model.load_state_dict(torch.load(f'./checkpoints/{args.load_path}/49_{model_name}'))
     print('total number of parameters of the network is: '+str(sum(p.numel() for p in model.parameters() if p.requires_grad)))
-    writer = SummaryWriter(log_dir='./pretrain_logs/' + args.model_path)
+    writer = SummaryWriter(log_dir='./finetune_logs/' + args.model_path)
     train(model, writer, joint_used, joint_names, model_name, joint_weights)

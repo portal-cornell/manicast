@@ -9,6 +9,7 @@ from utils.loss_funcs import mpjpe_error, fde_error, weighted_mpjpe_error, perjo
 from utils.amass_3d import *
 from utils.parser import args
 from utils.mocap_3d import Datasets as MoCapDatasets
+from utils.stirring_reaction_transition import StirringReactionTransitions
 from utils.read_json_data import read_json
 from torch.utils.tensorboard import SummaryWriter
 import pathlib
@@ -17,13 +18,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 print('Using device: %s'%device)
 
-
 def train(model, writer, joint_used, joint_names, model_name, joint_weights):
     optimizer=optim.Adam(model.parameters(),lr=1e-4,weight_decay=1e-05)
 
     Dataset = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
     Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
     Dataset_test = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
+
+    Dataset_transitions_test = StirringReactionTransitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
 
     loader_train = DataLoader(
         Dataset,
@@ -41,7 +43,13 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         Dataset_test,
         batch_size=args.batch_size,
         shuffle =False,
-        num_workers=0)                    
+        num_workers=0)
+
+    loader_transition_test = DataLoader(
+        Dataset_transitions_test,
+        batch_size=args.batch_size,
+        shuffle =False,
+        num_workers=0)            
 
     model.train()
     for epoch in range(args.n_epochs):
@@ -136,7 +144,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
 if __name__ == '__main__':
     weight = args.weight
-    joint_weights_base = torch.tensor([1, 1, 1, weight, weight, weight, weight]).float().to(device)
+    joint_weights_base = torch.tensor([1, 1, 1, 2, 2, weight, weight]).float().to(device)
     joint_weights = joint_weights_base.unsqueeze(0).unsqueeze(0).unsqueeze(3)
     joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',
                       'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut']

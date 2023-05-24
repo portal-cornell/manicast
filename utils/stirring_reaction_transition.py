@@ -1,36 +1,27 @@
-from torch.utils.data import Dataset,DataLoader
-import numpy as np
-from matplotlib import pyplot as plt
 import torch
-import os
+from torch.utils.data import Dataset
 from utils.read_json_data import read_json, get_pose_history
+import os
 
-default_splits = [
+stirring_reaction_splits = [
             [
-                # 'chopping_mixing_data/train',
-                # 'chopping_stirring_data/train',
-                'stirring_reaction_data/train',
-                # 'table_setting_data/train',
+                'stirring_reaction_data/train'
             ],
             [
-                # 'chopping_mixing_data/val',
-                # 'chopping_stirring_data/val',
-                'stirring_reaction_data/val',
-                # 'table_setting_data/val',
+                'stirring_reaction_data/val'
             ],
             [
-                # 'chopping_mixing_data/test',
-                # 'chopping_stirring_data/test',
-                'stirring_reaction_data/test',
-                # 'table_setting_data/test',
+                'stirring_reaction_data/test'
             ],
         ]
 
-default_names = ["Kushal", "Prithwish"]
+def convert_time_to_frame(time, hz, offset):
+    mins = int(time[:time.find(':')])
+    secs = int(time[time.find(':')+1:])
+    return ((mins*60 + secs) * hz) + offset
 
-class Datasets(Dataset):
-
-    def __init__(self,data_dir,input_n,output_n,sample_rate, split=0, mocap_splits=default_splits, names=default_names):
+class StirringReactionTransitions(Dataset):
+    def __init__(self, data_dir,input_n,output_n,sample_rate, split=0, mocap_splits=stirring_reaction_splits):
         """
         data_dir := './mocap_data'
         mapping_file := './mapping.json'
@@ -42,6 +33,7 @@ class Datasets(Dataset):
         self.split = split
         self.data_lst = []
         sequence_len = input_n + output_n
+        self.timestamps = read_json('./mocap_data/stirring_reaction_data/stirring_reaction_transitions.json')
         
 
         ignore_data = {
@@ -60,7 +52,7 @@ class Datasets(Dataset):
             for episode in os.listdir(self.data_dir + '/' + ds):
                 print(f'Episode: {self.data_dir}/{ds}/{episode}')
                 json_data = read_json(f'{self.data_dir}/{ds}/{episode}')
-                for skeleton_name in names:
+                for skeleton_name in [self.timestamps[episode]["name"]]:
                     if episode in ignore_data[skeleton_name]:
                         print('Ignoring for ' + skeleton_name)
                         continue
@@ -69,11 +61,19 @@ class Datasets(Dataset):
                     skip_rate = int(round(120/self.sample_rate))
                     select_frames = torch.tensor(range(len(tensor)//skip_rate))*skip_rate
                     skipped_frames = tensor[select_frames]
-                    for start_frame in range(skipped_frames.shape[0]-sequence_len):
-                        end_frame = start_frame + sequence_len
-                        self.data_lst.append(skipped_frames[start_frame:end_frame, :, :])
+
+                    for (start, end) in self.timestamps[episode]["timestamps"]:
+                        start_frame, end_frame = convert_time_to_frame(start, self.sample_rate, 0), convert_time_to_frame(end, self.sample_rate, 0)
+                        # print(f'start: {start_frame}, end: {end_frame}')
+                        for begin in range(start_frame, end_frame+1-sequence_len):
+                            self.data_lst.append(skipped_frames[begin:begin+sequence_len, :, :])
+                            # if skipped_frames[begin:begin+sequence_len, :, :].shape[0] != 35:
+                            #     print(skipped_frames[begin:begin+sequence_len, :, :].shape)
+                            #     print(sequence_len)
+
         for idx, seq in enumerate(self.data_lst):
             self.data_lst[idx] = seq[:, :, :] - seq[input_n-1:input_n, 21:22, :]
+        print(len(self.data_lst))
 
 
     def __len__(self):
@@ -82,8 +82,3 @@ class Datasets(Dataset):
     def __getitem__(self, idx):
         # each element of the data list is of shape (sequence length, 25 joints, 3d)
         return self.data_lst[idx]
-
-
-
-if __name__ == "__main__":
-    dataset = Datasets('./mocap_data', 10, 25, 25)
