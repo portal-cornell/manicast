@@ -1,7 +1,7 @@
-# import rospy
+import rospy
 import json
-# from visualization_msgs.msg import MarkerArray, Marker
-# from geometry_msgs.msg import Point
+from visualization_msgs.msg import MarkerArray, Marker
+from geometry_msgs.msg import Point
 import numpy as np
 from model import *
 import torch
@@ -94,15 +94,15 @@ def get_marker_array(current_joints, future_joints, forecast_joints):
                                         color=1))
     return marker_array
 
-model_folder = './checkpoints'
+model_folder = '/home/portal/Human_Motion_Forecasting/checkpoints/'
 model_path = f'{model_folder}/finetune_5_1e-03/amass_3d_25frames_ckpt'
-# model_path = f'{model_folder}/finetuned_stirring_reaction_weighted/19_amass_3d_25frames_ckpt'
+model_path = f'{model_folder}/finetuned_stirring_reaction_weighted/19_amass_3d_25frames_ckpt'
 # model_path = /home/portal/Human_Motion_Forecasting/checkpoints/
-episode_folder = "./mocap_data"
+episode_folder = "/home/portal/Human_Motion_Forecasting/mocap_data/"
 activity = "stirring_reaction"
 episode_file = f"{episode_folder}/{activity}_data/test/{activity}_4.json"
 stream_person = "Kushal"
-mapping_file = "./mapping.json"
+mapping_file = "/home/portal/Human_Motion_Forecasting/mapping.json"
 
 input_dim = 3
 input_n = 10
@@ -125,11 +125,11 @@ with open(mapping_file, 'r') as f:
     mapping = json.load(f)
 
 joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
-# rospy.init_node('forecaster', anonymous=True)
-# human_forecast = rospy.Publisher("/human_forecast", MarkerArray, queue_size=1)
+rospy.init_node('forecaster', anonymous=True)
+human_forecast = rospy.Publisher("/human_forecast", MarkerArray, queue_size=1)
 
 joint_data = np.array(data[stream_person])
-# rate = rospy.Rate(1200)
+rate = rospy.Rate(1200)
 
 threshold = 0.4
 
@@ -169,11 +169,11 @@ for timestep in range(joint_data.shape[0]):
         forecast_reaction_times.append(timestep/120.0)
         forecast_in_danger=True
 
-    # marker_array = get_marker_array(current_joints=current_joints, 
-    #                                 future_joints=future_joints,
-    #                                 forecast_joints=forecast_joints)
+    marker_array = get_marker_array(current_joints=current_joints, 
+                                    future_joints=future_joints,
+                                    forecast_joints=forecast_joints)
     # future_markers = get_future_markers(future_joints)
-    # human_forecast.publish(marker_array)
+    human_forecast.publish(marker_array)
     # rate.sleep()
 print("Future reaction times = ", future_reaction_times)
 print("Current reaction times = ", current_reaction_times)

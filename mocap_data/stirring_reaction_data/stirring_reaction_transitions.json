@@ -1,0 +1,325 @@
+{
+    "stirring_reaction_0": {
+        "timestamps": [
+            [
+                "0:06",
+                "0:10"
+            ],
+            [
+                "0:10",
+                "0:16"
+            ],
+            [
+                "0:24",
+                "0:27"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_1": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:12"
+            ],
+            [
+                "0:17",
+                "0:20"
+            ],
+            [
+                "0:26",
+                "0:29"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "stirring_reaction_2": {
+        "timestamps": [
+            [
+                "0:08",
+                "0:11"
+            ],
+            [
+                "0:13",
+                "0:17"
+            ],
+            [
+                "0:25",
+                "0:28"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_3": {
+        "timestamps": [
+            [
+                "0:02",
+                "0:12"
+            ],
+            [
+                "0:20",
+                "0:23"
+            ],
+            [
+                "0:24",
+                "0:28"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_4": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:12"
+            ],
+            [
+                "0:12",
+                "0:16"
+            ],
+            [
+                "0:26",
+                "0:29"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "stirring_reaction_5": {
+        "timestamps": [
+            [
+                "0:15",
+                "0:18"
+            ],
+            [
+                "0:19",
+                "0:23"
+            ],
+            [
+                "0:24",
+                "0:27"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "stirring_reaction_6": {
+        "timestamps": [
+            [
+                "0:07",
+                "0:10"
+            ],
+            [
+                "0:19",
+                "0:22"
+            ],
+            [
+                "0:24",
+                "0:28"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_7": {
+        "timestamps": [
+            [
+                "0:11",
+                "0:14"
+            ],
+            [
+                "0:15",
+                "0:19"
+            ],
+            [
+                "0:27",
+                "0:29"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_8": {
+        "timestamps": [
+            [
+                "0:08",
+                "0:11"
+            ],
+            [
+                "0:12",
+                "0:17"
+            ],
+            [
+                "0:24",
+                "0:26"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_9": {
+        "timestamps": [
+            [
+                "0:11",
+                "0:13"
+            ],
+            [
+                "0:15",
+                "0:19"
+            ],
+            [
+                "0:27",
+                "0:29"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_10": {
+        "timestamps": [
+            [
+                "0:11",
+                "0:13"
+            ],
+            [
+                "0:14",
+                "0:17"
+            ],
+            [
+                "0:19",
+                "0:21"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "stirring_reaction_11": {
+        "timestamps": [
+            [
+                "0:06",
+                "0:08"
+            ],
+            [
+                "0:09",
+                "0:12"
+            ],
+            [
+                "0:17",
+                "0:20"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "stirring_reaction_12": {
+        "timestamps": [
+            [
+                "0:06",
+                "0:09"
+            ],
+            [
+                "0:14",
+                "0:17"
+            ],
+            [
+                "0:18",
+                "0:21"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "stirring_reaction_13": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:12"
+            ],
+            [
+                "0:13",
+                "0:18"
+            ],
+            [
+                "0:27",
+                "0:29"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_14": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:13"
+            ],
+            [
+                "0:15",
+                "0:19"
+            ],
+            [
+                "0:27",
+                "0:30"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_15": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:13"
+            ],
+            [
+                "0:22",
+                "0:26"
+            ],
+            [
+                "0:27",
+                "0:31"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "stirring_reaction_16": {
+        "timestamps": [
+            [
+                "0:15",
+                "0:18"
+            ],
+            [
+                "0:19",
+                "0:22"
+            ],
+            [
+                "0:22",
+                "0:24"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "stirring_reaction_17": {
+        "timestamps": [
+            [
+                "0:10",
+                "0:13"
+            ],
+            [
+                "0:17",
+                "0:20"
+            ],
+            [
+                "0:22",
+                "0:24"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "stirring_reaction_18": {
+        "timestamps": [
+            [
+                "0:07",
+                "0:10"
+            ],
+            [
+                "0:17",
+                "0:20"
+            ],
+            [
+                "0:21",
+                "0:24"
+            ]
+        ],
+        "name": "Kushal"
+    }
+}
