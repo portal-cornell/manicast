@@ -96,7 +96,8 @@ def get_marker_array(current_joints, future_joints, forecast_joints):
 
 model_folder = './checkpoints'
 model_path = f'{model_folder}/finetune_5_1e-03/amass_3d_25frames_ckpt'
-# model_path = f'{model_folder}/finetuned_stirring_reaction_weighted/19_amass_3d_25frames_ckpt'
+model_path = f'{model_folder}/finetuned_stirring_reaction/49_amass_3d_25frames_ckpt'
+model_path = f'{model_folder}/pretrained/49_amass_3d_25frames_ckpt'
 # model_path = /home/portal/Human_Motion_Forecasting/checkpoints/
 episode_folder = "./mocap_data"
 activity = "stirring_reaction"
@@ -175,9 +176,9 @@ for timestep in range(joint_data.shape[0]):
     # future_markers = get_future_markers(future_joints)
     # human_forecast.publish(marker_array)
     # rate.sleep()
-print("Future reaction times = ", future_reaction_times)
-print("Current reaction times = ", current_reaction_times)
-print("Forecast reaction times = ", forecast_reaction_times)
+print("Future reaction times = ", np.array(future_reaction_times)- np.array(current_reaction_times))
+# print("Current reaction times = ", current_reaction_times)
+print("Forecast reaction times = ", np.array(forecast_reaction_times)- np.array(current_reaction_times))
 
 
 # import pdb; pdb.set_trace()
