@@ -138,7 +138,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
 if __name__ == '__main__':
     weight = args.weight
-    joint_weights_base = torch.tensor([1, 1, 1, 2, 2, weight, weight]).float().to(device)
+    joint_weights_base = torch.tensor([1, 1, 1, 1, 1, weight, weight]).float().to(device)
     joint_weights = joint_weights_base.unsqueeze(0).unsqueeze(0).unsqueeze(3)
     joint_used = np.array([12, 16, 17, 18, 19, 20, 21])
     joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',

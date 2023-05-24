@@ -14,6 +14,12 @@ from utils.read_json_data import read_json
 from torch.utils.tensorboard import SummaryWriter
 import pathlib
 
+"""
+Train: both transitions and non
+Val: both transitions and non
+Test: transitions only
+"""
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 print('Using device: %s'%device)
@@ -49,22 +55,22 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         num_workers=0)
 
 
-
+    # making the batch size of the transition dataset 30 so that there's about an equal number of batches for both datasets
     loader_transition_train = DataLoader(
         Dataset_transitions_train,
-        batch_size=args.batch_size,
+        batch_size=30,
         shuffle = True,
         num_workers=0)    
     
     loader_transition_val = DataLoader(
         Dataset_transitions_val,
-        batch_size=args.batch_size,
+        batch_size=30,
         shuffle = True,
         num_workers=0)      
 
     loader_transition_test = DataLoader(
         Dataset_transitions_test,
-        batch_size=args.batch_size,
+        batch_size=30,
         shuffle =False,
         num_workers=0)         
 
@@ -75,26 +81,27 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         running_fde=0
         n=0
         model.train()
+
         for cnt,(batch, batch2) in enumerate(zip(loader_train, loader_transition_train)): 
-            batch = batch.float().to(device)[:, :, joint_used] # multiply by 1000 for milimeters
-            batch_dim=batch.shape[0]
-            n+=batch_dim
-            sequences_train=batch[:,0:args.input_n,:,:].permute(0,3,1,2)
-            sequences_predict_gt=batch[:,args.input_n:args.input_n+args.output_n,:,:]
-            optimizer.zero_grad()
-            sequences_predict=model(sequences_train)
-            # import pdb; pdb.set_trace()
-            loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
-            # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
-            per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
-            fde=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000          
-            loss.backward()
-            if args.clip_grad is not None:
-                torch.nn.utils.clip_grad_norm_(model.parameters(),args.clip_grad)
-            optimizer.step()
-            running_loss += loss*batch_dim
-            running_per_joint_error += per_joint_error*batch_dim
-            running_fde += fde*batch_dim
+            # batch = batch.float().to(device)[:, :, joint_used] # multiply by 1000 for milimeters
+            # batch_dim=batch.shape[0]
+            # n+=batch_dim
+            # sequences_train=batch[:,0:args.input_n,:,:].permute(0,3,1,2)
+            # sequences_predict_gt=batch[:,args.input_n:args.input_n+args.output_n,:,:]
+            # optimizer.zero_grad()
+            # sequences_predict=model(sequences_train)
+            # # import pdb; pdb.set_trace()
+            # loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
+            # # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
+            # per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
+            # fde=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000          
+            # loss.backward()
+            # if args.clip_grad is not None:
+            #     torch.nn.utils.clip_grad_norm_(model.parameters(),args.clip_grad)
+            # optimizer.step()
+            # running_loss += loss*batch_dim
+            # running_per_joint_error += per_joint_error*batch_dim
+            # running_fde += fde*batch_dim
 
             batch2 = batch2.float().to(device)[:, :, joint_used] # multiply by 1000 for milimeters
             batch_dim=batch2.shape[0]
@@ -168,26 +175,12 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         running_fde=0
         n=0
         with torch.no_grad():
-            for cnt,(batch, batch2) in enumerate(zip(loader_test, loader_transition_test)): 
+            for cnt,batch in enumerate(loader_transition_test): 
                 batch = batch.float().to(device)[:, :, joint_used]
                 batch_dim=batch.shape[0]
                 n+=batch_dim
                 sequences_train=batch[:,0:args.input_n,:,:].permute(0,3,1,2)
                 sequences_predict_gt=batch[:,args.input_n:args.input_n+args.output_n,:,:]
-                sequences_predict=model(sequences_train)
-                loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
-                # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
-                per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
-                fde=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000   
-                running_loss += loss*batch_dim
-                running_per_joint_error += per_joint_error*batch_dim
-                running_fde += fde*batch_dim
-
-                batch2 = batch2.float().to(device)[:, :, joint_used]
-                batch_dim=batch2.shape[0]
-                n+=batch_dim
-                sequences_train=batch2[:,0:args.input_n,:,:].permute(0,3,1,2)
-                sequences_predict_gt=batch2[:,args.input_n:args.input_n+args.output_n,:,:]
                 sequences_predict=model(sequences_train)
                 loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
                 # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
@@ -212,7 +205,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
 if __name__ == '__main__':
     weight = args.weight
-    joint_weights_base = torch.tensor([1, 1, 1, 2, 2, weight, weight]).float().to(device)
+    joint_weights_base = torch.tensor([1, 1, 1, 1, 1, weight, weight]).float().to(device)
     joint_weights = joint_weights_base.unsqueeze(0).unsqueeze(0).unsqueeze(3)
     joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',
                       'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut']

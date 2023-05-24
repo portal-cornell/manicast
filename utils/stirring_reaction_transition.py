@@ -65,8 +65,8 @@ class StirringReactionTransitions(Dataset):
                     for (start, end) in self.timestamps[episode]["timestamps"]:
                         start_frame, end_frame = convert_time_to_frame(start, self.sample_rate, 0), convert_time_to_frame(end, self.sample_rate, 0)
                         # print(f'start: {start_frame}, end: {end_frame}')
-                        for begin in range(start_frame, end_frame+1-sequence_len):
-                            self.data_lst.append(skipped_frames[begin:begin+sequence_len, :, :])
+                        for finish in range(start_frame, end_frame+1):
+                            self.data_lst.append(skipped_frames[finish-sequence_len:finish, :, :])
                             # if skipped_frames[begin:begin+sequence_len, :, :].shape[0] != 35:
                             #     print(skipped_frames[begin:begin+sequence_len, :, :].shape)
                             #     print(sequence_len)
