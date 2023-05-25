@@ -87,18 +87,12 @@ def get_marker(id, pose, edge, alpha=1, red=1, green=1, blue=1):
     marker.header.stamp = rospy.Time.now()
     marker.type = marker.LINE_LIST
     marker.id = id
-    marker.scale.x = 0.015
+    marker.scale.x = 0.01
     marker.action = marker.ADD 
     marker.color.r = red
     marker.color.g = green
     marker.color.b = blue
     marker.color.a = alpha
-    pos1, pos2 = pose[edge[0]], pose[edge[1]]
-    p1, p2 = Point(), Point()
-    x, y, z = pos1.tolist()
-    p1.x, p1.y, p1.z = -x, z, y
-    x, y, z = pos2.tolist()
-    p2.x, p2.y, p2.z = -x, z, y
     p1m = Marker()
     p1m.header.frame_id = "map"
     p1m.header.stamp = rospy.Time.now()
@@ -108,18 +102,26 @@ def get_marker(id, pose, edge, alpha=1, red=1, green=1, blue=1):
     p1m.scale.y = .025
     p1m.scale.z = .025
     p1m.action = p1m.ADD
-    p1m.color.b = 0
+    p1m.color.r = red
+    p1m.color.g = green
+    p1m.color.b = blue
     p1m.color.a = alpha
+    pos1, pos2 = pose[edge[0]], pose[edge[1]]
+    p1, p2 = Point(), Point()
+    x, y, z = pos1.tolist()
+    p1.x, p1.y, p1.z = -x, z, y
+    x, y, z = pos2.tolist()
+    p2.x, p2.y, p2.z = -x, z, y
+
     p1m.points = [p1, p2]
     marker.points = [p1, p2]
     return marker,p1m
 
+# Colored Gradients (currently blue focused)
 def get_marker_array(current_joints, future_joints, forecast_joints):
     marker_array = MarkerArray()
     for idx, edge in enumerate(edges + extra_edges):
-        tup = get_marker(idx, 
-                                               current_joints, 
-                                               edge, red=.1, green=.5, blue=1)
+        tup = get_marker(idx, current_joints, edge, red=.1, green=.5, blue=1)
         marker_array.markers.append(tup[0])
         marker_array.markers.append(tup[1])
     for i, time in enumerate([4,8,12,16,20,24]):
@@ -127,12 +129,31 @@ def get_marker_array(current_joints, future_joints, forecast_joints):
             tup = get_marker((i+2)*900+idx, 
                                         forecast_joints[time], 
                                         edge, 
-                                        alpha=0.4-0.1*((time+1)/25),
+                                        alpha=0.5-0.1*((time+1)/25),
                                         red=(.1-0.1*((time+1)/25))**(i**.1+1), green=(0.5-0.1*((time+1)/25))**(i**.1+1),blue=(.9-0.1*((time+1)/25))**(i**.1+1))
             marker_array.markers.append(tup[0])
             marker_array.markers.append(tup[1])
 
     return marker_array
+
+# B&W Color Scheme
+# def get_marker_array(current_joints, future_joints, forecast_joints):
+#     marker_array = MarkerArray()
+#     for idx, edge in enumerate(edges + extra_edges):
+#         tup = get_marker(idx, current_joints, edge, red=1, green=1, blue=1)
+#         marker_array.markers.append(tup[0])
+#         marker_array.markers.append(tup[1])
+#     for i, time in enumerate([4,8,12,16,20,24]):
+#         for idx, edge in enumerate(edges + extra_edges):
+#             tup = get_marker((i+2)*900+idx, 
+#                                         forecast_joints[time], 
+#                                         edge, 
+#                                         alpha=0.5-0.1*((time+1)/25),
+#                                         red=(1-0.2*i*((time+1)/25))**(i**.1+1), green=(1-0.2*i*((time+1)/25))**(i**.1+1),blue=(1-0.2*i*((time+1)/25))**(i**.1+1))
+#             marker_array.markers.append(tup[0])
+#             marker_array.markers.append(tup[1])
+
+#     return marker_array
 
 joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
 rospy.init_node('forecaster', anonymous=True)
