@@ -6,8 +6,9 @@ import numpy as np
 from model import *
 import torch
 
-model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
-model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/finetune_5_1e-03/amass_3d_25frames_ckpt'
+model_path = '/home/portal/datavisualization/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
+model_path = '/home/portal/datavisualization/Human_Motion_Forecasting/checkpoints/finetune_5_1e-03/amass_3d_25frames_ckpt'
+model_path = '/home/portal/datavisualization/Human_Motion_Forecasting/checkpoints/finetuned_stirring_unweighted_with_transitions/19_amass_3d_25frames_ckpt'
 
 input_dim = 3
 input_n = 10
@@ -24,9 +25,9 @@ model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 # print(model.eval())
 model.eval()
 
-episode_file = "/home/portal/Human_Motion_Forecasting/mocap_data/stirring_reaction_data/test/stirring_reaction_4.json"
+episode_file = "/home/portal/datavisualization/Human_Motion_Forecasting/mocap_data/stirring_reaction_data/test/stirring_reaction_4.json"
 stream_person = "Kushal"
-mapping_file = "/home/portal/Human_Motion_Forecasting/mapping.json"
+mapping_file = "/home/portal/datavisualization/Human_Motion_Forecasting/mapping.json"
 with open(episode_file, 'r') as f:
     data = json.load(f)
 with open(mapping_file, 'r') as f:
@@ -80,15 +81,17 @@ def get_forecast(history_joints):
     return forecast_joints[0].cpu().numpy()
     # pass
 
-def get_marker(id, pose, edge, alpha=1, color=1):
+def get_marker(id, pose, edge, alpha=1, red=1, green=1, blue=1):
     marker = Marker()
-    marker.header.frame_id = "mocap"
+    marker.header.frame_id = "map"
     marker.header.stamp = rospy.Time.now()
     marker.type = marker.LINE_LIST
     marker.id = id
-    marker.scale.x = 0.005
+    marker.scale.x = 0.015
     marker.action = marker.ADD 
-    marker.color.b = color
+    marker.color.r = red
+    marker.color.g = green
+    marker.color.b = blue
     marker.color.a = alpha
     pos1, pos2 = pose[edge[0]], pose[edge[1]]
     p1, p2 = Point(), Point()
@@ -96,29 +99,39 @@ def get_marker(id, pose, edge, alpha=1, color=1):
     p1.x, p1.y, p1.z = -x, z, y
     x, y, z = pos2.tolist()
     p2.x, p2.y, p2.z = -x, z, y
+    p1m = Marker()
+    p1m.header.frame_id = "map"
+    p1m.header.stamp = rospy.Time.now()
+    p1m.type = marker.SPHERE_LIST
+    p1m.id = id + 101
+    p1m.scale.x = .025
+    p1m.scale.y = .025
+    p1m.scale.z = .025
+    p1m.action = p1m.ADD
+    p1m.color.b = 0
+    p1m.color.a = alpha
+    p1m.points = [p1, p2]
     marker.points = [p1, p2]
-    return marker
+    return marker,p1m
 
 def get_marker_array(current_joints, future_joints, forecast_joints):
     marker_array = MarkerArray()
     for idx, edge in enumerate(edges + extra_edges):
-        marker_array.markers.append(get_marker(idx, 
+        tup = get_marker(idx, 
                                                current_joints, 
-                                               edge))
-    for i, time in enumerate([24]):
+                                               edge, red=.1, green=.5, blue=1)
+        marker_array.markers.append(tup[0])
+        marker_array.markers.append(tup[1])
+    for i, time in enumerate([4,8,12,16,20,24]):
         for idx, edge in enumerate(edges + extra_edges):
-            marker_array.markers.append(get_marker((i+1)*9+idx, 
-                                        future_joints[time], 
-                                        edge, 
-                                        alpha=0.4-0.1*((time+1)/25),
-                                        color=0))
-    for i, time in enumerate([24]):
-        for idx, edge in enumerate(edges + extra_edges):
-            marker_array.markers.append(get_marker((i+2)*900+idx, 
+            tup = get_marker((i+2)*900+idx, 
                                         forecast_joints[time], 
                                         edge, 
                                         alpha=0.4-0.1*((time+1)/25),
-                                        color=1))
+                                        red=(.1-0.1*((time+1)/25))**(i**.1+1), green=(0.5-0.1*((time+1)/25))**(i**.1+1),blue=(.9-0.1*((time+1)/25))**(i**.1+1))
+            marker_array.markers.append(tup[0])
+            marker_array.markers.append(tup[1])
+
     return marker_array
 
 joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
