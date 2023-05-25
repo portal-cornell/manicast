@@ -6,6 +6,7 @@ import numpy as np
 from model import *
 import torch
 import matplotlib.pyplot as plt
+from utils.loss_funcs import mpjpe_error
 
 relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',
                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']
@@ -54,11 +55,11 @@ def get_forecast(history_joints, model):
     return forecast_joints[0].cpu().numpy()
     # pass
 
-episode_num = 16
+episode_num = 17
 model_folder = './checkpoints'
 episode_folder = "./mocap_data"
 activity = "stirring_reaction"
-episode_file = f"{episode_folder}/{activity}_data/val/{activity}_{episode_num}.json"
+episode_file = f"{episode_folder}/{activity}_data/test/{activity}_{episode_num}.json"
 stream_person = "Kushal"
 mapping_file = "./mapping.json"
 
@@ -113,6 +114,7 @@ forecast_in_danger = {model_name: False for model_name in model_map.keys()}
 current_x_values = []
 future_x_values = []
 forecast_x_values = {model_name: [] for model_name in model_map.keys()}
+forecast_losses = {model_name: [] for model_name in model_map.keys()}
 time_values = []
 
 print(joint_data.shape)
@@ -143,10 +145,11 @@ for timestep in range(joint_data.shape[0]):
         future_in_danger=True
 
     for model_name, model in model_map.items():
-        forecast_joints = get_forecast(history_joints, model)   
-
+        forecast_joints = get_forecast(history_joints, model)
         x_max = np.array(forecast_joints)[:, :, 0].max()
         if (timestep%step_interval) == 0:
+            loss = mpjpe_error(torch.tensor(forecast_joints[:-2]).unsqueeze(0),torch.tensor(future_joints[:-2]).unsqueeze(0))*1000
+            forecast_losses[model_name].append(loss)
             forecast_x_values[model_name].append(x_max)
         if x_max < threshold: forecast_in_danger[model_name]=False
         if not forecast_in_danger[model_name] and x_max > threshold:
@@ -160,7 +163,7 @@ for timestep in range(joint_data.shape[0]):
 # print("Future reaction times = ", np.array(future_reaction_times)- np.array(current_reaction_times))
 # print("Forecast reaction times = ", np.array(forecast_reaction_times) - np.array(current_reaction_times))
 
-plotting = True
+plotting = False
 if plotting:
     plot_folder = './plots/'
     plot_name = activity + f'{episode_num}' + '.png'
@@ -172,7 +175,7 @@ if plotting:
     plt.plot(time_values, future_x_values_smooth, label='Future', linestyle='--',zorder=10)
     for i, (model_name, forecast_x) in enumerate(forecast_x_values.items()):
         window_size = 5
-        print(f'{model_name}: {forecast_x}')
+        # print(f'{model_name}: {forecast_x}')
         forecast_x_smooth = np.convolve(forecast_x, np.ones(window_size)/window_size, mode='same')
         plt.plot(time_values, forecast_x_smooth, label=f'{model_name}', linestyle='-',zorder=8-i)
     plt.axhline(y=0.5, color='r', linestyle='-', linewidth=1,zorder=0)
@@ -181,6 +184,31 @@ if plotting:
     plt.title('Maximum X Positions Over Time')
     plt.xlabel('Time')
     plt.ylabel('X')
+
+    # Add a legend
+    plt.legend()
+
+    plt.gcf().set_size_inches(10, 2)
+
+    # Save the plot as a PNG image file
+    plt.savefig(plot_folder + plot_name, dpi=300)
+    print(f'----- plotted to {plot_folder + plot_name} -----')
+
+plotting_mpjpe = True
+if plotting_mpjpe:
+    plot_folder = './plots_losses/'
+    plot_name = activity + f'{episode_num}' + '.png'
+    # Create the plot
+    for i, (model_name, forecast_loss) in enumerate(forecast_losses.items()):
+        window_size = 5
+        # print(f'{model_name}: {forecast_loss}')
+        forecast_loss_smooth = np.convolve(forecast_loss, np.ones(window_size)/window_size, mode='same')
+        plt.plot(time_values, forecast_loss_smooth, label=f'{model_name}', linestyle='-',zorder=8-i)
+
+    # Set plot title and labels
+    plt.title('MPJPE Loss Over Time')
+    plt.xlabel('Time')
+    plt.ylabel('MPJPE')
 
     # Add a legend
     plt.legend()
