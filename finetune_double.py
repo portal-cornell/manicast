@@ -58,19 +58,19 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
     # making the batch size of the transition dataset 30 so that there's about an equal number of batches for both datasets
     loader_transition_train = DataLoader(
         Dataset_transitions_train,
-        batch_size=30,
+        batch_size=len(Dataset_transitions_train)//len(loader_train),
         shuffle = True,
         num_workers=0)    
     
     loader_transition_val = DataLoader(
         Dataset_transitions_val,
-        batch_size=30,
+        batch_size=len(Dataset_transitions_val)//len(loader_val),
         shuffle = True,
         num_workers=0)      
 
     loader_transition_test = DataLoader(
         Dataset_transitions_test,
-        batch_size=30,
+        batch_size=len(Dataset_transitions_test)//len(loader_test),
         shuffle =False,
         num_workers=0)         
 
