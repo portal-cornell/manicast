@@ -5,6 +5,7 @@ from geometry_msgs.msg import Point
 import numpy as np
 from model import *
 import torch
+from pynput import keyboard
 
 model_path = '/home/portal/datavisualization/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
 model_path = '/home/portal/datavisualization/Human_Motion_Forecasting/checkpoints/finetune_5_1e-03/amass_3d_25frames_ckpt'
@@ -25,8 +26,8 @@ model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 # print(model.eval())
 model.eval()
 
-episode_file = "/home/portal/datavisualization/Human_Motion_Forecasting/mocap_data/stirring_reaction_data/test/stirring_reaction_4.json"
-stream_person = "Kushal"
+episode_file = "/home/portal/datavisualization/Human_Motion_Forecasting/mocap_data/stirring_reaction_data/val/stirring_reaction_15.json"
+stream_person = "Prithwish"
 mapping_file = "/home/portal/datavisualization/Human_Motion_Forecasting/mapping.json"
 with open(episode_file, 'r') as f:
     data = json.load(f)
@@ -121,16 +122,16 @@ def get_marker(id, pose, edge, alpha=1, red=1, green=1, blue=1):
 def get_marker_array(current_joints, future_joints, forecast_joints):
     marker_array = MarkerArray()
     for idx, edge in enumerate(edges + extra_edges):
-        tup = get_marker(idx, current_joints, edge, red=.1, green=.5, blue=1)
+        tup = get_marker(idx, current_joints, edge,alpha=1, red=0.1, green=0.1, blue=.7**((13)**.01+1))
         marker_array.markers.append(tup[0])
         marker_array.markers.append(tup[1])
-    for i, time in enumerate([4,8,12,16,20,24]):
+    for i, time in enumerate([0, 2,4,6,8,10,12,14,16,18,20,22,24]):
         for idx, edge in enumerate(edges + extra_edges):
             tup = get_marker((i+2)*900+idx, 
                                         forecast_joints[time], 
                                         edge, 
-                                        alpha=0.5-0.1*((time+1)/25),
-                                        red=(.1-0.1*((time+1)/25))**(i**.1+1), green=(0.5-0.1*((time+1)/25))**(i**.1+1),blue=(.9-0.1*((time+1)/25))**(i**.1+1))
+                                        alpha=1-0.4*((time+1)/25),
+                                        red=0.1, green=0.1+0.1*((time+1)/25),blue=(.7+0.001*((time+1)/25))**((12-i)**.01+1))
             marker_array.markers.append(tup[0])
             marker_array.markers.append(tup[1])
 
@@ -143,7 +144,7 @@ def get_marker_array(current_joints, future_joints, forecast_joints):
 #         tup = get_marker(idx, current_joints, edge, red=1, green=1, blue=1)
 #         marker_array.markers.append(tup[0])
 #         marker_array.markers.append(tup[1])
-#     for i, time in enumerate([4,8,12,16,20,24]):
+#     for i, time in enumerate([2,4,6,8,10,12,14,16,18,20,22,24]):
 #         for idx, edge in enumerate(edges + extra_edges):
 #             tup = get_marker((i+2)*900+idx, 
 #                                         forecast_joints[time], 
@@ -161,17 +162,31 @@ human_forecast = rospy.Publisher("/human_forecast", MarkerArray, queue_size=1)
 
 joint_data = np.array(data[stream_person])
 rate = rospy.Rate(120)
+pause = False
+def on_press(key):
+    if key == keyboard.Key.space:
+        pause = True
+        return False
+
+listener = keyboard.Listener(on_press=on_press)
+listener.start()
 for timestep in range(joint_data.shape[0]):
-    current_joints = get_relevant_joints(joint_data[timestep])
-    history_joints = get_history(joint_data, timestep)
-    future_joints = get_future(joint_data, timestep)
-    forecast_joints = get_forecast(history_joints)
-    marker_array = get_marker_array(current_joints=current_joints, 
-                                    future_joints=future_joints,
-                                    forecast_joints=forecast_joints)
-    # future_markers = get_future_markers(future_joints)
-    human_forecast.publish(marker_array)
-    rate.sleep()
+    if not pause and listener.running:
+        current_joints = get_relevant_joints(joint_data[timestep])
+        history_joints = get_history(joint_data, timestep)
+        future_joints = get_future(joint_data, timestep)
+        forecast_joints = get_forecast(history_joints)
+        marker_array = get_marker_array(current_joints=current_joints, 
+                                        future_joints=future_joints,
+                                        forecast_joints=forecast_joints)
+        # future_markers = get_future_markers(future_joints)
+        human_forecast.publish(marker_array)
+        rate.sleep()
+    else:
+        input("Press enter to continue")
+        pause = False
+        listener = keyboard.Listener(on_press=on_press)
+        listener.start()
 
 
 # import pdb; pdb.set_trace()
