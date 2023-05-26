@@ -9,7 +9,7 @@ from utils.loss_funcs import mpjpe_error, fde_error, weighted_mpjpe_error, perjo
 from utils.amass_3d import *
 from utils.parser import args
 from utils.mocap_3d import Datasets as MoCapDatasets
-from utils.stirring_reaction_transition import StirringReactionTransitions
+from utils.transitions_3d import Transitions
 from utils.read_json_data import read_json
 from torch.utils.tensorboard import SummaryWriter
 import pathlib
@@ -25,7 +25,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
     Dataset_val = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
     Dataset_test = MoCapDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
 
-    Dataset_transitions_test = StirringReactionTransitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
+    Dataset_transitions_test = Transitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
 
     loader_train = DataLoader(
         Dataset,

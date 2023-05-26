@@ -83,6 +83,15 @@ def create_input():
     end_time = time_step - 1
     start_time = end_time - 49
     input_array = []
+    i = 0
+    while i < end_time:
+        if i < 0:
+            idx = 0
+        else:
+            idx = int(round(i))
+            idx = min(end_time-1, idx)
+        i += 4.8
+
     for i in range(start_time, end_time+1, 5):
         if i < 0:
             idx = 0

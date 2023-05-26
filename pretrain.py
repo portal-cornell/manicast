@@ -137,6 +137,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
                    )
 
 if __name__ == '__main__':
+    # python pretrain.py --input_n 25 --model_path pretrained_unweighted_hist25 --weight 1
     weight = args.weight
     joint_weights_base = torch.tensor([1, 1, 1, 1, 1, weight, weight]).float().to(device)
     joint_weights = joint_weights_base.unsqueeze(0).unsqueeze(0).unsqueeze(3)
