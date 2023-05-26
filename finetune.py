@@ -115,7 +115,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         running_fde=0
         n=0
         with torch.no_grad():
-            for cnt,batch in enumerate(loader_test): 
+            for cnt,batch in enumerate(loader_transition_test): 
                 batch = batch.float().to(device)[:, :, joint_used]
                 batch_dim=batch.shape[0]
                 n+=batch_dim
