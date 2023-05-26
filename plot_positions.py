@@ -6,7 +6,7 @@ import numpy as np
 from model import *
 import torch
 import matplotlib.pyplot as plt
-from utils.loss_funcs import mpjpe_error
+from utils.loss_funcs import mpjpe_error, perjoint_error
 
 relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',
                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']
@@ -84,7 +84,8 @@ model_map = {
     'AMASS': create_model(f'{model_folder}/pretrained_unweighted/49_amass_3d_25frames_ckpt'),
     # TODO: Create model trained on only our data
     # 'FT': create_model(f'{model_folder}/finetuned_stirring_unweighted_no_transitions/19_amass_3d_25frames_ckpt'),
-    'FT-Trans': create_model(f'{model_folder}/finetuned_stirring_unweighted_with_transitions/19_amass_3d_25frames_ckpt'),
+    'FT-Only-Trans': create_model(f'{model_folder}/finetuned_stirring_unweighted_only_transitions/19_amass_3d_25frames_ckpt'),
+    'FT-Mix-Trans': create_model(f'{model_folder}/finetuned_stirring_unweighted_with_transitions/19_amass_3d_25frames_ckpt'),
     # 'FT-Trans-Weight': create_model(f'{model_folder}/finetuned_stirring_wrist_10_elbow_2_with_transitions/19_amass_3d_25frames_ckpt')
 }
 
@@ -148,8 +149,12 @@ for timestep in range(joint_data.shape[0]):
         forecast_joints = get_forecast(history_joints, model)
         x_max = np.array(forecast_joints)[:, :, 0].max()
         if (timestep%step_interval) == 0:
-            loss = mpjpe_error(torch.tensor(forecast_joints[:-2]).unsqueeze(0),torch.tensor(future_joints[:-2]).unsqueeze(0))*1000
-            forecast_losses[model_name].append(loss)
+            seq_pred = torch.tensor(forecast_joints[:-2]).unsqueeze(0)
+            seq_gt = torch.tensor(future_joints[:-2]).unsqueeze(0)
+            loss = mpjpe_error(seq_pred,seq_gt)*1000
+            per_joint_error=perjoint_error(seq_pred,seq_gt)*1000
+            forecast_losses[model_name].append(loss) # MPJPE
+            # forecast_losses[model_name].append(per_joint_error[6])
             forecast_x_values[model_name].append(x_max)
         if x_max < threshold: forecast_in_danger[model_name]=False
         if not forecast_in_danger[model_name] and x_max > threshold:
@@ -163,7 +168,7 @@ for timestep in range(joint_data.shape[0]):
 # print("Future reaction times = ", np.array(future_reaction_times)- np.array(current_reaction_times))
 # print("Forecast reaction times = ", np.array(forecast_reaction_times) - np.array(current_reaction_times))
 
-plotting = False
+plotting = True
 if plotting:
     plot_folder = './plots/'
     plot_name = activity + f'{episode_num}' + '.png'
@@ -182,8 +187,8 @@ if plotting:
 
     # Set plot title and labels
     plt.title('Maximum X Positions Over Time')
-    plt.xlabel('Time')
-    plt.ylabel('X')
+    plt.xlabel('Time (s)')
+    plt.ylabel('X (m)')
 
     # Add a legend
     plt.legend()
@@ -193,6 +198,8 @@ if plotting:
     # Save the plot as a PNG image file
     plt.savefig(plot_folder + plot_name, dpi=300)
     print(f'----- plotted to {plot_folder + plot_name} -----')
+
+plt.clf()
 
 plotting_mpjpe = True
 if plotting_mpjpe:
@@ -207,8 +214,8 @@ if plotting_mpjpe:
 
     # Set plot title and labels
     plt.title('MPJPE Loss Over Time')
-    plt.xlabel('Time')
-    plt.ylabel('MPJPE')
+    plt.xlabel('Time (s)')
+    plt.ylabel('MPJPE (mm)')
 
     # Add a legend
     plt.legend()
