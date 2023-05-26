@@ -7,8 +7,8 @@ from model import *
 import torch
 
 model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
-model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/finetune_5_1e-03/amass_3d_25frames_ckpt'
-
+# model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/finetune_5_1e-03/amass_3d_25frames_ckpt'
+model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/all_finetuned_unweighted_with_transitions/19_amass_3d_25frames_ckpt'
 input_dim = 3
 input_n = 10
 output_n = 25
@@ -25,6 +25,7 @@ model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 model.eval()
 
 episode_file = "/home/portal/Human_Motion_Forecasting/mocap_data/stirring_reaction_data/test/stirring_reaction_4.json"
+# episode_file = "handover.json"
 stream_person = "Kushal"
 mapping_file = "/home/portal/Human_Motion_Forecasting/mapping.json"
 with open(episode_file, 'r') as f:
@@ -80,7 +81,7 @@ def get_forecast(history_joints):
     return forecast_joints[0].cpu().numpy()
     # pass
 
-def get_marker(id, pose, edge, alpha=1, color=1):
+def get_marker(id, pose, edge, ns = 'current', alpha=1, color=1):
     marker = Marker()
     marker.header.frame_id = "mocap"
     marker.header.stamp = rospy.Time.now()
@@ -90,6 +91,7 @@ def get_marker(id, pose, edge, alpha=1, color=1):
     marker.action = marker.ADD 
     marker.color.b = color
     marker.color.a = alpha
+    marker.ns = f'{ns}-{relevant_joints[edge[0]]}_{relevant_joints[edge[1]]}'
     pos1, pos2 = pose[edge[0]], pose[edge[1]]
     p1, p2 = Point(), Point()
     x, y, z = pos1.tolist()
@@ -104,19 +106,22 @@ def get_marker_array(current_joints, future_joints, forecast_joints):
     for idx, edge in enumerate(edges + extra_edges):
         marker_array.markers.append(get_marker(idx, 
                                                current_joints, 
-                                               edge))
+                                               edge,
+                                               ns=f'current',))
     for i, time in enumerate([24]):
         for idx, edge in enumerate(edges + extra_edges):
             marker_array.markers.append(get_marker((i+1)*9+idx, 
                                         future_joints[time], 
                                         edge, 
+                                        ns=f'future-{time}', 
                                         alpha=0.4-0.1*((time+1)/25),
                                         color=0))
     for i, time in enumerate([24]):
         for idx, edge in enumerate(edges + extra_edges):
             marker_array.markers.append(get_marker((i+2)*900+idx, 
                                         forecast_joints[time], 
-                                        edge, 
+                                        edge,
+                                        ns=f'forecast-{time}', 
                                         alpha=0.4-0.1*((time+1)/25),
                                         color=1))
     return marker_array

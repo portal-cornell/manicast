@@ -103,6 +103,7 @@ model_path = f'{model_folder}/finetune_5_1e-03/amass_3d_25frames_ckpt'
 model_path = f'{model_folder}/pretrained_unweighted/49_amass_3d_25frames_ckpt'
 # model_path = f'{model_folder}/pretrained/49_amass_3d_25frames_ckpt'
 # model_path = /home/portal/Human_Motion_Forecasting/checkpoints/
+model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/all_finetuned_unweighted_with_transitions/19_amass_3d_25frames_ckpt'
 episode_folder = "./mocap_data"
 activity = "stirring_reaction"
 episode_file = f"{episode_folder}/{activity}_data/test/{activity}_4.json"
@@ -136,7 +137,7 @@ joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
 joint_data = np.array(data[stream_person])
 # rate = rospy.Rate(1200)
 
-threshold = 0.4
+threshold = 0.5
 
 current_reaction_times = []
 current_in_danger = False
