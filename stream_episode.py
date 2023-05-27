@@ -7,9 +7,6 @@ from model import *
 import torch
 from utils.parser import args
 from pynput import keyboard
-# model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
-# model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/finetune_5_1e-03/amass_3d_25frames_ckpt'
-
 
 def get_relevant_joints(all_joints, relevant_joints=['BackTop', 'LShoulderBack', 'RShoulderBack',
                         'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']):                       
@@ -49,28 +46,68 @@ def get_forecast(history_joints):
     return forecast_joints[0].cpu().numpy()
     # pass
 
-def get_marker(id, pose, edge, ns = 'current', alpha=1, color=1):
+# def get_marker(id, pose, edge, ns = 'current', alpha=1, color=1):
+#     marker = Marker()
+#     marker.header.frame_id = "mocap"
+#     marker.header.stamp = rospy.Time.now()
+#     marker.type = marker.LINE_LIST
+#     marker.id = id
+#     marker.scale.x = 0.005
+#     marker.action = marker.ADD 
+#     marker.color.b = color
+#     marker.color.a = alpha
+#     marker.ns = f'{ns}-{relevant_joints[edge[0]]}_{relevant_joints[edge[1]]}'
+#     pos1, pos2 = pose[edge[0]], pose[edge[1]]
+#     p1, p2 = Point(), Point()
+#     x, y, z = pos1.tolist()
+#     p1.x, p1.y, p1.z = -x, z, y
+#     x, y, z = pos2.tolist()
+#     p2.x, p2.y, p2.z = -x, z, y
+#     marker.points = [p1, p2]
+#     return marker
+
+def get_marker(id, pose, edge, ns = 'current', alpha=1, red=1, green=1, blue=1):
+    relevant_joints=['BackTop', 'LShoulderBack', 'RShoulderBack',
+                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']
+    SCALE = 0.015
     marker = Marker()
     marker.header.frame_id = "mocap"
     marker.header.stamp = rospy.Time.now()
     marker.type = marker.LINE_LIST
     marker.id = id
-    marker.scale.x = 0.005
+    marker.scale.x = SCALE
     marker.action = marker.ADD 
-    marker.color.b = color
-    marker.color.a = alpha
     marker.ns = f'{ns}-{relevant_joints[edge[0]]}_{relevant_joints[edge[1]]}'
+    marker.color.r = red
+    marker.color.g = green
+    marker.color.b = blue
+    marker.color.a = alpha
+    p1m = Marker()
+    p1m.header.frame_id = "mocap"
+    p1m.header.stamp = rospy.Time.now()
+    p1m.type = marker.SPHERE_LIST
+    p1m.id = id + 101
+    p1m.scale.x = SCALE*2
+    p1m.scale.y = SCALE*2
+    p1m.scale.z = SCALE*2
+    p1m.action = p1m.ADD
+    p1m.color.r = red
+    p1m.color.g = green
+    p1m.color.b = blue
+    p1m.color.a = alpha/2
     pos1, pos2 = pose[edge[0]], pose[edge[1]]
     p1, p2 = Point(), Point()
     x, y, z = pos1.tolist()
     p1.x, p1.y, p1.z = -x, z, y
     x, y, z = pos2.tolist()
     p2.x, p2.y, p2.z = -x, z, y
-    marker.points = [p1, p2]
-    return marker
 
-def get_marker_array(current_joints, future_joints, forecast_joints, person = "Kushal", relevant_joints=['BackTop', 'LShoulderBack', 'RShoulderBack',
-                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']):
+    p1m.points = [p1, p2]
+    marker.points = [p1, p2]
+    return marker,p1m
+
+
+def get_marker_array(current_joints, future_joints, forecast_joints, person = "Kushal"):
     id_offset = 100000 if person == 'Kushal' else 0
     color = 1 if person == "Kushal" else 0
     marker_array = MarkerArray()
@@ -81,12 +118,20 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
         ]
     # extra edges to connect the pose back to the hips
     extra_edges = [(1, 7), (7, 8), (8, 2)]
+    # for idx, edge in enumerate(edges + extra_edges):
+    #     marker_array.markers.append(get_marker(idx+id_offset, 
+    #                                            current_joints, 
+    #                                            edge,
+    #                                            ns=f'current',
+    #                                            color=color))
     for idx, edge in enumerate(edges + extra_edges):
-        marker_array.markers.append(get_marker(idx+id_offset, 
-                                               current_joints, 
-                                               edge,
-                                               ns=f'current',
-                                               color=color))
+        tup = get_marker(idx, current_joints, edge,ns=f'current', alpha=1, 
+                         red=0.1, 
+                         green=0.1, 
+                         blue=0.7)
+        marker_array.markers.append(tup[0])
+        marker_array.markers.append(tup[1])
+
     # for i, time in enumerate([24]):
     #     for idx, edge in enumerate(edges + extra_edges):
     #         marker_array.markers.append(get_marker((i+1)*9+idx, 
@@ -95,14 +140,28 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
     #                                     ns=f'future-{time}', 
     #                                     alpha=0.4-0.1*((time+1)/25),
     #                                     color=0))
-    for i, time in enumerate([24]):
+
+    for i, time in enumerate([0,2,4,6,8,10,12,14,16,18,20,22,24]):
         for idx, edge in enumerate(edges + extra_edges):
-            marker_array.markers.append(get_marker((i+2)*900+idx+id_offset, 
+            tup = get_marker((i+2)*900+idx, 
                                         forecast_joints[time], 
                                         edge,
                                         ns=f'forecast-{time}', 
-                                        alpha=0.4-0.1*((time+1)/25),
-                                        color=1))
+                                        alpha=0.7-0.35*(time+1)/25,
+                                        red=0.1, 
+                                        green=0.1+0.15*(time+1)/25, 
+                                        blue=0.7-0.25*(time+1)/25)
+            marker_array.markers.append(tup[0])
+            marker_array.markers.append(tup[1])
+
+    # for i, time in enumerate([24]):
+    #     for idx, edge in enumerate(edges + extra_edges):
+    #         marker_array.markers.append(get_marker((i+2)*900+idx+id_offset, 
+    #                                     forecast_joints[time], 
+    #                                     edge,
+    #                                     , 
+    #                                     alpha=0.4-0.1*((time+1)/25),
+    #                                     color=1))
     return marker_array
 
 
@@ -144,7 +203,7 @@ if __name__ == '__main__':
     listener = keyboard.Listener(on_press=on_press)
     listener.start()
 
-    rate = rospy.Rate(1200)
+    rate = rospy.Rate(120)
 
     person_data = {}
     for stream_person in data:
@@ -152,6 +211,7 @@ if __name__ == '__main__':
     for timestep in range(len(data[list(data.keys())[0]])):
         if not pause and listener.running:
             for stream_person in data:
+                if stream_person != "Kushal": continue
                 joint_data = person_data[stream_person]
                 current_joints = get_relevant_joints(joint_data[timestep])
                 history_joints = get_history(joint_data, timestep)
