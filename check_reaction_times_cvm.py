@@ -36,17 +36,10 @@ def get_future(all_joints, current_idx, future_length=25, skip_rate = 5):
     return future_joints
 
 def get_forecast(history_joints):
-    history_joints = torch.Tensor(np.array(history_joints)).unsqueeze(0)
-    current_left_hip = history_joints[:,-2:-1,-2:-1,:]
-    current_hips = history_joints[:,-2:-1,-2:,:]
-    history_joints = history_joints - current_left_hip
-    sequences_train=history_joints[:,:,:-2].permute(0,3,1,2)
-    with torch.no_grad():
-        sequences_predict=model(sequences_train).permute(0,1,3,2)
-    current_hips_repeat = current_hips.repeat(1, sequences_predict.shape[1], 1, 1)
-    forecast_joints = torch.cat([sequences_predict+current_left_hip, current_hips_repeat], dim=2)
-    # import pdb; pdb.set_trace()
-    return forecast_joints[0].cpu().numpy()
+    history_joints = np.array(history_joints)
+    forecast_joints = history_joints[-1]+25/10*(history_joints[-1]-history_joints[0])
+    # print(forecast_joints.shape)
+    return forecast_joints
     # pass
 
 if __name__ == '__main__':
@@ -93,7 +86,7 @@ if __name__ == '__main__':
         
         history_joints = get_history(joint_data, timestep, history_length=args.input_n)
         forecast_joints = get_forecast(history_joints)
-        x_max = np.array(forecast_joints)[-1, 6, 0].max()
+        x_max = np.array(forecast_joints)[6, 0].max()
         if x_max < threshold and forecast_in_danger: 
             forecast_start_times.append(timestep/120.0)
             forecast_in_danger=False
