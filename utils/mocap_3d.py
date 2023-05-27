@@ -50,8 +50,16 @@ class Datasets(Dataset):
                          'chopping_mixing_4.json',
                          'chopping_mixing_5.json',
                          'chopping_mixing_8.json',
-                         'chopping_stirring_0.json'],
-            "Kushal":[]
+                         'chopping_stirring_0.json',
+                         'chopping_stirring_12.json',
+                         'chopping_stirring_14.json'],
+            "Kushal":['table_setting_4.json',
+                      'table_setting_5.json',
+                      'table_setting_6.json',
+                      'table_setting_7.json',
+                      'table_setting_8.json',
+                      'table_setting_9.json',
+                      'table_setting_10.json',]
         }
 
 

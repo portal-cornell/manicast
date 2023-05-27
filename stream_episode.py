@@ -5,46 +5,14 @@ from geometry_msgs.msg import Point
 import numpy as np
 from model import *
 import torch
-
-model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
+from utils.parser import args
+from pynput import keyboard
+# model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
 # model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/finetune_5_1e-03/amass_3d_25frames_ckpt'
-model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/all_finetuned_unweighted_with_transitions/19_amass_3d_25frames_ckpt'
-input_dim = 3
-input_n = 10
-output_n = 25
-st_gcnn_dropout = 0.1
-joints_to_consider = 7
-n_tcnn_layers = 4
-tcnn_kernel_size = [3,3]
-tcnn_dropout = 0.0
-
-model = Model(input_dim, input_n, output_n,st_gcnn_dropout, joints_to_consider,
-              n_tcnn_layers, tcnn_kernel_size, tcnn_dropout).to('cpu')
-model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-# print(model.eval())
-model.eval()
-
-episode_file = "/home/portal/Human_Motion_Forecasting/mocap_data/stirring_reaction_data/test/stirring_reaction_4.json"
-# episode_file = "handover.json"
-stream_person = "Kushal"
-mapping_file = "/home/portal/Human_Motion_Forecasting/mapping.json"
-with open(episode_file, 'r') as f:
-    data = json.load(f)
-with open(mapping_file, 'r') as f:
-    mapping = json.load(f)
-
-relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',
-                       'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']
-edges = [
-        (0, 1), (0, 2),
-        (1, 3), (3, 5),
-        (2, 4), (4, 6)
-    ]
-# extra edges to connect the pose back to the hips
-extra_edges = [(1, 7), (7, 8), (8, 2)]
 
 
-def get_relevant_joints(all_joints):                       
+def get_relevant_joints(all_joints, relevant_joints=['BackTop', 'LShoulderBack', 'RShoulderBack',
+                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']):                       
     relevant_joint_pos = []
     for joint in relevant_joints:
         pos = all_joints[mapping[joint]]
@@ -101,24 +69,35 @@ def get_marker(id, pose, edge, ns = 'current', alpha=1, color=1):
     marker.points = [p1, p2]
     return marker
 
-def get_marker_array(current_joints, future_joints, forecast_joints):
+def get_marker_array(current_joints, future_joints, forecast_joints, person = "Kushal", relevant_joints=['BackTop', 'LShoulderBack', 'RShoulderBack',
+                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']):
+    id_offset = 100000 if person == 'Kushal' else 0
+    color = 1 if person == "Kushal" else 0
     marker_array = MarkerArray()
+    edges = [
+            (0, 1), (0, 2),
+            (1, 3), (3, 5),
+            (2, 4), (4, 6)
+        ]
+    # extra edges to connect the pose back to the hips
+    extra_edges = [(1, 7), (7, 8), (8, 2)]
     for idx, edge in enumerate(edges + extra_edges):
-        marker_array.markers.append(get_marker(idx, 
+        marker_array.markers.append(get_marker(idx+id_offset, 
                                                current_joints, 
                                                edge,
-                                               ns=f'current',))
+                                               ns=f'current',
+                                               color=color))
+    # for i, time in enumerate([24]):
+    #     for idx, edge in enumerate(edges + extra_edges):
+    #         marker_array.markers.append(get_marker((i+1)*9+idx, 
+    #                                     future_joints[time], 
+    #                                     edge, 
+    #                                     ns=f'future-{time}', 
+    #                                     alpha=0.4-0.1*((time+1)/25),
+    #                                     color=0))
     for i, time in enumerate([24]):
         for idx, edge in enumerate(edges + extra_edges):
-            marker_array.markers.append(get_marker((i+1)*9+idx, 
-                                        future_joints[time], 
-                                        edge, 
-                                        ns=f'future-{time}', 
-                                        alpha=0.4-0.1*((time+1)/25),
-                                        color=0))
-    for i, time in enumerate([24]):
-        for idx, edge in enumerate(edges + extra_edges):
-            marker_array.markers.append(get_marker((i+2)*900+idx, 
+            marker_array.markers.append(get_marker((i+2)*900+idx+id_offset, 
                                         forecast_joints[time], 
                                         edge,
                                         ns=f'forecast-{time}', 
@@ -126,23 +105,70 @@ def get_marker_array(current_joints, future_joints, forecast_joints):
                                         color=1))
     return marker_array
 
-joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
-rospy.init_node('forecaster', anonymous=True)
-human_forecast = rospy.Publisher("/human_forecast", MarkerArray, queue_size=1)
 
-joint_data = np.array(data[stream_person])
-rate = rospy.Rate(120)
-for timestep in range(joint_data.shape[0]):
-    current_joints = get_relevant_joints(joint_data[timestep])
-    history_joints = get_history(joint_data, timestep)
-    future_joints = get_future(joint_data, timestep)
-    forecast_joints = get_forecast(history_joints)
-    marker_array = get_marker_array(current_joints=current_joints, 
-                                    future_joints=future_joints,
-                                    forecast_joints=forecast_joints)
-    # future_markers = get_future_markers(future_joints)
-    human_forecast.publish(marker_array)
-    rate.sleep()
+
+if __name__ == '__main__':
+    rospy.init_node('forecaster', anonymous=True)
+    human_forecast = rospy.Publisher("/human_forecast", MarkerArray, queue_size=1)
+
+    model = Model(args.input_dim,args.input_n, args.output_n,args.st_gcnn_dropout,args.joints_to_consider,
+                args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to('cpu')
+    model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
+    model.load_state_dict(torch.load(f'./checkpoints/{args.load_path}/19_{model_name}'))
+    # model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    # print(model.eval())
+    model.eval()
+
+    
+    episode_file = "handover.json"
+
+
+    episode_file = f"/home/portal/MHAD_Processing/{args.activity}_data/{args.activity}_{args.ep_num}.json"
+    mapping_file = "mapping.json"
+    with open(episode_file, 'r') as f:
+        data = json.load(f)
+    with open(mapping_file, 'r') as f:
+        mapping = json.load(f)
+
+    relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',
+                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']
+    
+    joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
+    
+    pause = False
+    def on_press(key):
+        if key == keyboard.Key.space:
+            pause = True
+            return False
+
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+
+    rate = rospy.Rate(1200)
+
+    person_data = {}
+    for stream_person in data:
+        person_data[stream_person] = np.array(data[stream_person])
+    for timestep in range(len(data[list(data.keys())[0]])):
+        if not pause and listener.running:
+            for stream_person in data:
+                joint_data = person_data[stream_person]
+                current_joints = get_relevant_joints(joint_data[timestep])
+                history_joints = get_history(joint_data, timestep)
+                future_joints = get_future(joint_data, timestep)
+                forecast_joints = get_forecast(history_joints)
+                marker_array = get_marker_array(current_joints=current_joints, 
+                                                future_joints=future_joints,
+                                                forecast_joints=forecast_joints,
+                                                person=stream_person)
+                # future_markers = get_future_markers(future_joints)
+                human_forecast.publish(marker_array)
+                rate.sleep()
+        else:
+            input("Press enter to continue")
+            pause = False
+            listener = keyboard.Listener(on_press=on_press)
+            listener.start()
 
 
 # import pdb; pdb.set_trace()

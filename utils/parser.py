@@ -48,6 +48,8 @@ parser.add_argument('--clip_grad',type=float,default=None,help= 'select max norm
 parser.add_argument('--model_path',type=str,default='./checkpoints/CKPT_3D_H36M',help= 'directory with the models checkpoints ')
 parser.add_argument('--load_path',type=str,default='pretrain',help= 'directory with the models checkpoints ')
 parser.add_argument('--weight',type=int,default=1,help= 'directory with the models checkpoints ')
+parser.add_argument('--activity',type=str,default='stirring_reaction',help= 'directory with the models checkpoints ')
+parser.add_argument('--ep_num',type=str,default='0',help= 'directory with the models checkpoints ')
 
 #FLAGS FOR THE VISUALIZATION
 
