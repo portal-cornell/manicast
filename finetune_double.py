@@ -25,10 +25,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('Using device: %s'%device)
 
 def train(model, writer, joint_used, joint_names, model_name, joint_weights):
-    train_on_nontransitions = True 
-    train_on_transitions = True
 
-    optimizer=optim.Adam(model.parameters(),lr=1e-4,weight_decay=1e-05)
+    optimizer=optim.Adam(model.parameters(),lr=args.lr_ft,weight_decay=1e-05)
 
     Dataset_transitions_train = Transitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
     Dataset_transitions_val = Transitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
@@ -88,7 +86,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         model.train()
 
         for cnt,(batch, batch2) in enumerate(zip(loader_train, loader_transition_train)): 
-            if train_on_nontransitions:
+            if args.nontransitions > 0:
                 batch = batch.float().to(device)[:, :, joint_used] # multiply by 1000 for milimeters
                 batch_dim=batch.shape[0]
                 n+=batch_dim
@@ -109,7 +107,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
                 running_per_joint_error += per_joint_error*batch_dim
                 running_fde += fde*batch_dim
             
-            if train_on_transitions:
+            if args.transitions > 0:
                 batch2 = batch2.float().to(device)[:, :, joint_used] # multiply by 1000 for milimeters
                 batch_dim=batch2.shape[0]
                 n+=batch_dim
@@ -217,7 +215,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
                    )
 
 if __name__ == '__main__':
-    # python finetune_double.py --load_path pretrained_unweighted --model_path all_finetuned_unweighted_with_transitions --n_epochs 20 --weight 1 --input_n 10
+    # python finetune_double.py --load_path pretrained_unweighted_hist25 --model_path all_finetuned_unweighted_with_transitions --n_epochs 20 --weight 1 --input_n 25
     weight = args.weight
     joint_weights_base = torch.tensor([1, 1, 1, 1, 1, weight, weight]).float().to(device)
     joint_weights = joint_weights_base.unsqueeze(0).unsqueeze(0).unsqueeze(3)

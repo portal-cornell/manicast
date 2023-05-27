@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset
-from utils.read_json_data import read_json, get_pose_history
+from utils.read_json_data import read_json, get_pose_history, missing_data
 import os
 import numpy as np
 
@@ -48,6 +48,10 @@ class Transitions(Dataset):
             f'{self.data_dir}/chopping_mixing_data': read_json(f'{self.data_dir}/chopping_mixing_data/chopping_mixing_transitions.json'),
             f'{self.data_dir}/chopping_stirring_data': read_json(f'{self.data_dir}/chopping_stirring_data/chopping_stirring_transitions.json')
         }
+        joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',
+                      'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut']
+        mapping = read_json('./mapping.json')
+        joint_used = np.array([mapping[joint_name] for joint_name in joint_names])
         
 
         ignore_data = {
@@ -60,7 +64,7 @@ class Transitions(Dataset):
             "Kushal":[]
         }
 
-
+        missing_cnt = 0
         for ds in mocap_splits[split]:
             print(f'>>> loading {ds}')
             for episode in os.listdir(self.data_dir + '/' + ds):
@@ -91,6 +95,10 @@ class Transitions(Dataset):
                                 #     print(f'Begin: {begin}\nLast: {end_frame+1-sequence_len}\n{skipped_frames.shape[0]}')
                                 #     print(skipped_frames[begin:begin+sequence_len, :, :].shape)
                                 #     print(episode)
+                                if missing_data(skipped_frames[begin:begin+sequence_len, joint_used, :]):
+                                    missing_cnt += 1
+                                    continue
+
                                 self.data_lst.append(skipped_frames[begin:begin+sequence_len, :, :])
 
                 else: # this branch is for table setting, where the entirety of the episode has transitions for both people
@@ -102,14 +110,17 @@ class Transitions(Dataset):
                         skip_rate = int(round(120/self.sample_rate))
                         select_frames = torch.tensor(range(len(tensor)//skip_rate))*skip_rate
                         skipped_frames = tensor[select_frames]
-
                         for start_frame in range(skipped_frames.shape[0]-sequence_len):
                             end_frame = start_frame + sequence_len
+                            if missing_data(skipped_frames[start_frame:end_frame, joint_used, :]):
+                                missing_cnt += 1
+                                continue
                             self.data_lst.append(skipped_frames[start_frame:end_frame, :, :])
 
         for idx, seq in enumerate(self.data_lst):
             self.data_lst[idx] = seq[:, :, :] - seq[input_n-1:input_n, 21:22, :]
         print(len(self.data_lst))
+        print(f'Missing {missing_cnt}')
 
 
     def __len__(self):

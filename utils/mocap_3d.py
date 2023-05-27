@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import torch
 import os
-from utils.read_json_data import read_json, get_pose_history
+from utils.read_json_data import read_json, get_pose_history, missing_data
 
 default_splits = [
             [
@@ -26,6 +26,8 @@ default_splits = [
             ],
         ]
 
+
+
 default_names = ["Kushal", "Prithwish"]
 
 class Datasets(Dataset):
@@ -42,6 +44,10 @@ class Datasets(Dataset):
         self.split = split
         self.data_lst = []
         sequence_len = input_n + output_n
+        joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',
+                      'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut']
+        mapping = read_json('./mapping.json')
+        joint_used = np.array([mapping[joint_name] for joint_name in joint_names])
         
 
         ignore_data = {
@@ -50,11 +56,19 @@ class Datasets(Dataset):
                          'chopping_mixing_4.json',
                          'chopping_mixing_5.json',
                          'chopping_mixing_8.json',
-                         'chopping_stirring_0.json'],
-            "Kushal":[]
+                         'chopping_stirring_0.json',
+                         'chopping_stirring_12.json',
+                         'chopping_stirring_14.json'],
+            "Kushal":['table_setting_4.json',
+                      'table_setting_5.json',
+                      'table_setting_6.json',
+                      'table_setting_7.json',
+                      'table_setting_8.json',
+                      'table_setting_9.json',
+                      'table_setting_10.json',]
         }
 
-
+        missing_cnt = 0
         for ds in mocap_splits[split]:
             print(f'>>> loading {ds}')
             for episode in os.listdir(self.data_dir + '/' + ds):
@@ -73,9 +87,14 @@ class Datasets(Dataset):
                     skipped_frames = tensor[select_frames]
                     for start_frame in range(skipped_frames.shape[0]-sequence_len):
                         end_frame = start_frame + sequence_len
+                        if missing_data(skipped_frames[start_frame:end_frame, joint_used, :]):
+                            missing_cnt += 1
+                            continue
                         self.data_lst.append(skipped_frames[start_frame:end_frame, :, :])
         for idx, seq in enumerate(self.data_lst):
             self.data_lst[idx] = seq[:, :, :] - seq[input_n-1:input_n, 21:22, :]
+        print(len(self.data_lst))
+        print(f'Missing: {missing_cnt}')
 
 
     def __len__(self):

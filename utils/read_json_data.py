@@ -1,6 +1,10 @@
 import json
 import torch
 
+def missing_data(tensor):
+    return torch.any(torch.all(tensor == 0, dim=-1))
+
+
 """
 Reads in the Motive json data into python object
 """

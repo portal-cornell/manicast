@@ -31,6 +31,7 @@ parser.add_argument('--tcnn_dropout',type=float,default=0.0,help= 'tcnn dropout'
 
 
 
+
 #ARGS FOR THE TRAINING
 
 
@@ -48,6 +49,9 @@ parser.add_argument('--clip_grad',type=float,default=None,help= 'select max norm
 parser.add_argument('--model_path',type=str,default='./checkpoints/CKPT_3D_H36M',help= 'directory with the models checkpoints ')
 parser.add_argument('--load_path',type=str,default='pretrain',help= 'directory with the models checkpoints ')
 parser.add_argument('--weight',type=int,default=1,help= 'directory with the models checkpoints ')
+parser.add_argument('--lr_ft',type=float,default=1e-04,help='Learning rate of the optimizer for finetuning')
+parser.add_argument('--transitions',type=int,default=1,help= 'use transitions for training')
+parser.add_argument('--nontransitions',type=int,default=1,help= 'use non transitions for training')
 
 #FLAGS FOR THE VISUALIZATION
 

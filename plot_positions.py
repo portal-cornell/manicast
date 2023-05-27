@@ -73,7 +73,7 @@ tcnn_kernel_size = [3,3]
 tcnn_dropout = 0.0
 
 def create_model(model_path):
-    model = Model(input_dim, input_n, output_n,st_gcnn_dropout, joints_to_consider,
+    model = Model(input_dim,input_n, output_n,st_gcnn_dropout, joints_to_consider,
                 n_tcnn_layers, tcnn_kernel_size, tcnn_dropout).to('cpu')
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()
@@ -83,10 +83,17 @@ def create_model(model_path):
 model_map = {
     'AMASS': create_model(f'{model_folder}/pretrained_unweighted/49_amass_3d_25frames_ckpt'),
     # TODO: Create model trained on only our data
-    # 'FT': create_model(f'{model_folder}/finetuned_stirring_unweighted_no_transitions/19_amass_3d_25frames_ckpt'),
-    'FT-Only-Trans': create_model(f'{model_folder}/finetuned_stirring_unweighted_only_transitions/19_amass_3d_25frames_ckpt'),
-    'FT-Mix-Trans': create_model(f'{model_folder}/finetuned_stirring_unweighted_with_transitions/19_amass_3d_25frames_ckpt'),
-    # 'FT-Trans-Weight': create_model(f'{model_folder}/finetuned_stirring_wrist_10_elbow_2_with_transitions/19_amass_3d_25frames_ckpt')
+    # 'FT-No-Trans': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_no_transitions_1e-04/49_amass_3d_25frames_ckpt'),
+    # 'FT-Mix-Trans': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
+    'FT-Mix-Trans-Wrist6': create_model(f'{model_folder}/all_finetuned_wrist6_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt')
+}
+color_map = {
+    'Current': '#fc8d62',
+    'Future': '#e41a1c',
+    'AMASS': '#377eb8',
+    # TODO: Create model trained on only our data
+    # 'FT-Mix-Trans': '#4daf4a',
+    'FT-Mix-Trans-Wrist6': '#4daf4a'
 }
 
 
@@ -101,7 +108,7 @@ joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
 
 joint_data = np.array(data[stream_person])[120*7:]
 
-threshold = 0.4
+threshold = 0.5
 
 current_reaction_times = []
 current_in_danger = False
@@ -119,14 +126,14 @@ forecast_losses = {model_name: [] for model_name in model_map.keys()}
 time_values = []
 
 print(joint_data.shape)
-step_interval = 12
+step_interval = 2
 
 for timestep in range(joint_data.shape[0]):
     if (timestep%step_interval) == 0:
         time_values.append(timestep / 120.0)
 
     current_joints = get_relevant_joints(joint_data[timestep])
-    x_max = np.array(current_joints)[:, 0].max()
+    x_max = np.array(current_joints)[[6], 0].max()
     if (timestep%step_interval) == 0:
         current_x_values.append(x_max)
     if x_max < threshold: current_in_danger=False
@@ -137,7 +144,7 @@ for timestep in range(joint_data.shape[0]):
     history_joints = get_history(joint_data, timestep)
     future_joints = get_future(joint_data, timestep)
 
-    x_max = np.array(future_joints)[-1, :, 0].max()
+    x_max = np.array(future_joints)[-1, [6], 0].max()
     if (timestep%step_interval) == 0:
         future_x_values.append(x_max)
     if x_max < threshold: future_in_danger=False
@@ -146,8 +153,9 @@ for timestep in range(joint_data.shape[0]):
         future_in_danger=True
 
     for model_name, model in model_map.items():
+        history_joints = get_history(joint_data, timestep, history_length=25 if ('25' in model_name) else 10)
         forecast_joints = get_forecast(history_joints, model)
-        x_max = np.array(forecast_joints)[:, :, 0].max()
+        x_max = np.array(forecast_joints)[-1, [6], 0].max()
         if (timestep%step_interval) == 0:
             seq_pred = torch.tensor(forecast_joints[:-2]).unsqueeze(0)
             seq_gt = torch.tensor(future_joints[:-2]).unsqueeze(0)
@@ -171,29 +179,54 @@ for timestep in range(joint_data.shape[0]):
 plotting = True
 if plotting:
     plot_folder = './plots/'
-    plot_name = activity + f'{episode_num}' + '.png'
+    plot_name = activity + f'{episode_num}_testing' + '.png'
     # Create the plot
-    window_size = 3
+    window_size = 15
     current_x_values_smooth = np.convolve(current_x_values, np.ones(window_size)/window_size, mode='same')
     future_x_values_smooth = np.convolve(future_x_values, np.ones(window_size)/window_size, mode='same')
-    plt.plot(time_values, current_x_values_smooth, label='Current', linestyle='--',zorder=9)
-    plt.plot(time_values, future_x_values_smooth, label='Future', linestyle='--',zorder=10)
+    # plt.plot(time_values, current_x_values_smooth, label='Current', linestyle='--',zorder=9)
+    current_mask = np.array(current_x_values_smooth) < 0.5
+    plt.plot(time_values, np.where(current_mask, np.nan, current_x_values_smooth), label='Current', linestyle='--', zorder=9, alpha=1.0, color=color_map['Current'])
+    plt.plot(time_values, np.where(current_mask, current_x_values_smooth, np.nan), label='Current', linestyle='--', zorder=9, alpha=0.25, color=color_map['Current'])
+    
+
+
+    # plt.plot(time_values, future_x_values_smooth, label='Future', linestyle='--',zorder=10)
+    future_mask = np.array(future_x_values_smooth) < 0.5
+    plt.plot(time_values, np.where(future_mask, np.nan, future_x_values_smooth), label='Future', linestyle='--', zorder=10, alpha=1.0, color=color_map['Future'])
+    plt.plot(time_values, np.where(future_mask, future_x_values_smooth, np.nan), label='Future', linestyle='--', zorder=10, alpha=0.25, color=color_map['Future'])
+    
+
     for i, (model_name, forecast_x) in enumerate(forecast_x_values.items()):
-        window_size = 5
+        window_size = 17
         # print(f'{model_name}: {forecast_x}')
         forecast_x_smooth = np.convolve(forecast_x, np.ones(window_size)/window_size, mode='same')
-        plt.plot(time_values, forecast_x_smooth, label=f'{model_name}', linestyle='-',zorder=8-i)
-    plt.axhline(y=0.5, color='r', linestyle='-', linewidth=1,zorder=0)
+
+        mask = np.array(forecast_x_smooth) < 0.5
+        plt.plot(time_values, np.where(mask, np.nan, forecast_x_smooth), label=f'{model_name}', linestyle='-', zorder=8-i, alpha=1.0, color=color_map[f'{model_name}'])
+        plt.plot(time_values, np.where(mask, forecast_x_smooth, np.nan), label=f'{model_name}', linestyle='-', zorder=8-i, alpha=0.25, color=color_map[f'{model_name}'])
+        
+
+    plt.axhline(y=0.5, color='black', linestyle='-', linewidth=1,zorder=0,alpha=0.5)
 
     # Set plot title and labels
-    plt.title('Maximum X Positions Over Time')
+    plt.title('Wrist X-Position Over Time')
     plt.xlabel('Time (s)')
     plt.ylabel('X (m)')
 
     # Add a legend
-    plt.legend()
+    handles, labels = plt.gca().get_legend_handles_labels()
+    unique_labels = ['Future', 'FT-Mix-Trans-Wrist6', 'AMASS', 'Current']
+    unique_handles = [handles[labels.index(label)] for label in unique_labels]
+    legend_position = 'upper left'  # Position of the legend
+    legend_bbox_to_anchor = (0, 1)  # Bbox coordinates of the legend
+    legend_fontsize = 'small'  # Font size of the legend text
+
+    plt.legend(unique_handles, unique_labels, loc=legend_position, bbox_to_anchor=legend_bbox_to_anchor, fontsize=legend_fontsize)
 
     plt.gcf().set_size_inches(10, 2)
+    plt.subplots_adjust(bottom=0.25)  # Increase or decrease the values as needed
+
 
     # Save the plot as a PNG image file
     plt.savefig(plot_folder + plot_name, dpi=300)
@@ -204,13 +237,13 @@ plt.clf()
 plotting_mpjpe = True
 if plotting_mpjpe:
     plot_folder = './plots_losses/'
-    plot_name = activity + f'{episode_num}' + '.png'
+    plot_name = activity + f'{episode_num}_testing' + '.png'
     # Create the plot
     for i, (model_name, forecast_loss) in enumerate(forecast_losses.items()):
-        window_size = 5
+        window_size = 21
         # print(f'{model_name}: {forecast_loss}')
         forecast_loss_smooth = np.convolve(forecast_loss, np.ones(window_size)/window_size, mode='same')
-        plt.plot(time_values, forecast_loss_smooth, label=f'{model_name}', linestyle='-',zorder=8-i)
+        plt.plot(time_values, forecast_loss_smooth, label=f'{model_name}', linestyle='-',zorder=8-i,color=color_map[f'{model_name}'])
 
     # Set plot title and labels
     plt.title('MPJPE Loss Over Time')
@@ -218,9 +251,18 @@ if plotting_mpjpe:
     plt.ylabel('MPJPE (mm)')
 
     # Add a legend
-    plt.legend()
+    handles, labels = plt.gca().get_legend_handles_labels()
+    unique_labels = list(set(labels))
+    unique_handles = [handles[labels.index(label)] for label in unique_labels]
+    legend_position = 'upper left'  # Position of the legend
+    legend_bbox_to_anchor = (0, 1)  # Bbox coordinates of the legend
+    legend_fontsize = 'small'  # Font size of the legend text
+
+    plt.legend(unique_handles, unique_labels, loc=legend_position, bbox_to_anchor=legend_bbox_to_anchor, fontsize=legend_fontsize)
 
     plt.gcf().set_size_inches(10, 2)
+    plt.subplots_adjust(bottom=0.25)  # Increase or decrease the values as needed
+
 
     # Save the plot as a PNG image file
     plt.savefig(plot_folder + plot_name, dpi=300)
