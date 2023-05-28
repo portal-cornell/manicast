@@ -82,7 +82,6 @@ if __name__ == '__main__':
 
     for timestep in range(0, joint_data.shape[0], 5):
         current_joints = get_relevant_joints(joint_data[timestep])
-        # import pdb; pdb.set_trace()
         x_max = np.array(current_joints)[:, 0].max()
         if x_max < threshold and current_in_danger: 
             current_start_times.append(timestep/120.0)
@@ -100,7 +99,6 @@ if __name__ == '__main__':
         if not forecast_in_danger and x_max > threshold:
             forecast_stop_times.append(timestep/120.0)
             forecast_in_danger=True
-#             rate.sleep()
 
     def rounder(my_list):
         return [ round(elem, 2) for elem in my_list ]

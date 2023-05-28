@@ -3,28 +3,30 @@ import numpy as np
 from matplotlib import pyplot as plt
 import torch
 import os
-from utils.read_json_data import read_json, get_pose_history
+from utils.read_json_data import read_json, get_pose_history, missing_data
 
 default_splits = [
             [
-                # 'chopping_mixing_data/train',
-                # 'chopping_stirring_data/train',
+                'chopping_mixing_data/train',
+                'chopping_stirring_data/train',
                 'stirring_reaction_data/train',
-                # 'table_setting_data/train',
+                'table_setting_data/train',
             ],
             [
-                # 'chopping_mixing_data/val',
-                # 'chopping_stirring_data/val',
+                'chopping_mixing_data/val',
+                'chopping_stirring_data/val',
                 'stirring_reaction_data/val',
-                # 'table_setting_data/val',
+                'table_setting_data/val',
             ],
             [
-                # 'chopping_mixing_data/test',
-                # 'chopping_stirring_data/test',
+                'chopping_mixing_data/test',
+                'chopping_stirring_data/test',
                 'stirring_reaction_data/test',
-                # 'table_setting_data/test',
+                'table_setting_data/test',
             ],
         ]
+
+
 
 default_names = ["Kushal", "Prithwish"]
 
@@ -42,6 +44,10 @@ class Datasets(Dataset):
         self.split = split
         self.data_lst = []
         sequence_len = input_n + output_n
+        joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',
+                      'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut']
+        mapping = read_json('./mapping.json')
+        joint_used = np.array([mapping[joint_name] for joint_name in joint_names])
         
 
         ignore_data = {
@@ -62,7 +68,7 @@ class Datasets(Dataset):
                       'table_setting_10.json',]
         }
 
-
+        missing_cnt = 0
         for ds in mocap_splits[split]:
             print(f'>>> loading {ds}')
             for episode in os.listdir(self.data_dir + '/' + ds):
@@ -74,14 +80,21 @@ class Datasets(Dataset):
                         continue
                     tensor = get_pose_history(json_data, skeleton_name)
                     # chop the tensor into a bunch of slices of size sequence_len
-                    skip_rate = int(round(120/self.sample_rate))
-                    select_frames = torch.tensor(range(len(tensor)//skip_rate))*skip_rate
+                    orig_frames = tensor.shape[0]
+                    downsampled_frames = int(round((orig_frames/120)*self.sample_rate))
+                    sample_idxs = np.linspace(0, orig_frames-1, downsampled_frames)
+                    select_frames = np.round(sample_idxs).astype(int)
                     skipped_frames = tensor[select_frames]
                     for start_frame in range(skipped_frames.shape[0]-sequence_len):
                         end_frame = start_frame + sequence_len
+                        if missing_data(skipped_frames[start_frame:end_frame, joint_used, :]):
+                            missing_cnt += 1
+                            continue
                         self.data_lst.append(skipped_frames[start_frame:end_frame, :, :])
         for idx, seq in enumerate(self.data_lst):
             self.data_lst[idx] = seq[:, :, :] - seq[input_n-1:input_n, 21:22, :]
+        print(len(self.data_lst))
+        print(f'Missing: {missing_cnt}')
 
 
     def __len__(self):
