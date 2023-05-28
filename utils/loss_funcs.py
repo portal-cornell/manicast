@@ -36,6 +36,15 @@ def perjoint_error(batch_pred, batch_gt):
     diff = batch_gt - batch_pred
     batch_joint_errors = torch.mean(torch.norm(diff,2,3), 1)
     return torch.mean(batch_joint_errors,0)
+
+def perjoint_fde(batch_pred, batch_gt):
+    batch_pred = batch_pred.contiguous()
+    batch_gt=batch_gt.contiguous()
+    diff = batch_gt - batch_pred
+    return torch.mean(torch.norm(diff[:, -1],2,2), 0)
+    # import pdb; pdb.set_trace()
+    # batch_joint_errors = torch.mean(torch.norm(diff,2,3), 1)
+    # return torch.mean(batch_joint_errors,0)
     
 def euler_error(ang_pred, ang_gt):
 

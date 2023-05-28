@@ -46,13 +46,14 @@ parser.add_argument('--milestones',type=list,default=[15,25,35,40],help= 'the ep
 parser.add_argument('--gamma',type=float,default=0.1,help= 'gamma correction to the learning rate, after reaching the milestone epochs')
 parser.add_argument('--clip_grad',type=float,default=None,help= 'select max norm to clip gradients')
 parser.add_argument('--model_path',type=str,default='./checkpoints/CKPT_3D_H36M',help= 'directory with the models checkpoints ')
-parser.add_argument('--load_path',type=str,default='pretrain',help= 'directory with the models checkpoints ')
+parser.add_argument('--load_path',type=str,default='pretrained_unweighted',help= 'directory with the models checkpoints ')
 parser.add_argument('--weight',type=int,default=1,help= 'directory with the models checkpoints ')
 parser.add_argument('--activity',type=str,default='stirring_reaction',help= 'directory with the models checkpoints ')
 parser.add_argument('--ep_num',type=str,default='0',help= 'directory with the models checkpoints ')
 parser.add_argument('--model_num',type=str,default='49',help= 'directory with the models checkpoints ')
 parser.add_argument('--threshold',type=float,default=0.4,help= 'directory with the models checkpoints ')
 parser.add_argument('--stream_person',type=str,default="Kushal",help= 'directory with the models checkpoints ')
+parser.add_argument('--prediction_method',type=str,default="neural",help= 'directory with the models checkpoints ')
 
 #FLAGS FOR THE VISUALIZATION
 
