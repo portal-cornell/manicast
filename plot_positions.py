@@ -81,19 +81,17 @@ def create_model(model_path):
     return model
 
 model_map = {
-    'AMASS': create_model(f'{model_folder}/pretrained_unweighted/49_amass_3d_25frames_ckpt'),
-    # TODO: Create model trained on only our data
-    # 'FT-No-Trans': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_no_transitions_1e-04/49_amass_3d_25frames_ckpt'),
-    # 'FT-Mix-Trans': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
-    'FT-Mix-Trans-Wrist6': create_model(f'{model_folder}/all_finetuned_wrist6_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt')
+    'Base': create_model(f'{model_folder}/pretrained_unweighted/49_amass_3d_25frames_ckpt'),
+    'FT-T-Mixed': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
+    'FT-TJ': create_model(f'{model_folder}/all_finetuned_wrist6ft_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt')
 }
 color_map = {
     'Current': '#fc8d62',
     'Future': '#e41a1c',
-    'AMASS': '#377eb8',
+    'Base': '#377eb8',
     # TODO: Create model trained on only our data
-    # 'FT-Mix-Trans': '#4daf4a',
-    'FT-Mix-Trans-Wrist6': '#4daf4a'
+    'FT-T-Mixed': '#4daf4a',
+    'FT-TJ': 'gray'
 }
 
 
@@ -216,7 +214,7 @@ if plotting:
 
     # Add a legend
     handles, labels = plt.gca().get_legend_handles_labels()
-    unique_labels = ['Future', 'FT-Mix-Trans-Wrist6', 'AMASS', 'Current']
+    unique_labels = ['Future', 'FT-TJ', 'FT-T-Mixed', 'Base', 'Current']
     unique_handles = [handles[labels.index(label)] for label in unique_labels]
     legend_position = 'upper left'  # Position of the legend
     legend_bbox_to_anchor = (0, 1)  # Bbox coordinates of the legend
