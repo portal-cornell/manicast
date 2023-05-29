@@ -207,8 +207,8 @@ if __name__ == '__main__':
     person_data = {}
     for stream_person in data:
         person_data[stream_person] = np.array(data[stream_person])
-    for timestep in range(len(data[list(data.keys())[0]])):
-        print(round(timestep/120, 1))
+    for timestep in range(args.start_frame, args.end_frame):
+        print(round((timestep-args.start_frame)/120, 1))
         if not pause and listener.running:
             for stream_person in data:
                 if stream_person != "Kushal": continue
