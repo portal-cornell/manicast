@@ -26,8 +26,8 @@ model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 # print(model.eval())
 model.eval()
 
-episode_file = "/home/portal/datavisualization/Human_Motion_Forecasting/mocap_data/stirring_reaction_data/val/stirring_reaction_15.json"
-stream_person = "Prithwish"
+episode_file = "/home/portal/datavisualization/Human_Motion_Forecasting/mocap_data/hand_over_data/handover.json"
+stream_person = "Kushal"
 mapping_file = "/home/portal/datavisualization/Human_Motion_Forecasting/mapping.json"
 with open(episode_file, 'r') as f:
     data = json.load(f)
@@ -84,7 +84,7 @@ def get_forecast(history_joints):
 
 def get_marker(id, pose, edge, alpha=1, red=1, green=1, blue=1):
     marker = Marker()
-    marker.header.frame_id = "map"
+    marker.header.frame_id = "mocap"
     marker.header.stamp = rospy.Time.now()
     marker.type = marker.LINE_LIST
     marker.id = id
@@ -95,7 +95,7 @@ def get_marker(id, pose, edge, alpha=1, red=1, green=1, blue=1):
     marker.color.b = blue
     marker.color.a = alpha
     p1m = Marker()
-    p1m.header.frame_id = "map"
+    p1m.header.frame_id = "mocap"
     p1m.header.stamp = rospy.Time.now()
     p1m.type = marker.SPHERE_LIST
     p1m.id = id + 101
@@ -106,7 +106,7 @@ def get_marker(id, pose, edge, alpha=1, red=1, green=1, blue=1):
     p1m.color.r = red
     p1m.color.g = green
     p1m.color.b = blue
-    p1m.color.a = alpha
+    p1m.color.a = .75 * alpha
     pos1, pos2 = pose[edge[0]], pose[edge[1]]
     p1, p2 = Point(), Point()
     x, y, z = pos1.tolist()
@@ -122,7 +122,7 @@ def get_marker(id, pose, edge, alpha=1, red=1, green=1, blue=1):
 def get_marker_array(current_joints, future_joints, forecast_joints):
     marker_array = MarkerArray()
     for idx, edge in enumerate(edges + extra_edges):
-        tup = get_marker(idx, current_joints, edge,alpha=1, red=0.1, green=0.1, blue=.7**((13)**.01+1))
+        tup = get_marker(idx, current_joints, edge,alpha=1, red=0, green=0, blue=0)
         marker_array.markers.append(tup[0])
         marker_array.markers.append(tup[1])
     for i, time in enumerate([0, 2,4,6,8,10,12,14,16,18,20,22,24]):
@@ -158,7 +158,7 @@ def get_marker_array(current_joints, future_joints, forecast_joints):
 
 joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
 rospy.init_node('forecaster', anonymous=True)
-human_forecast = rospy.Publisher("/human_forecast", MarkerArray, queue_size=1)
+human_forecast = rospy.Publisher("/human_forecast1", MarkerArray, queue_size=1)
 
 joint_data = np.array(data[stream_person])
 rate = rospy.Rate(120)
