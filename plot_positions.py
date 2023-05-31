@@ -83,7 +83,7 @@ def create_model(model_path):
 model_map = {
     'Base': create_model(f'{model_folder}/pretrained_unweighted/49_amass_3d_25frames_ckpt'),
     'FT-T-Mixed': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
-    'FT': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_no_transitions_1e-04/49_amass_3d_25frames_ckpt')
+    # 'FT': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_no_transitions_1e-04/49_amass_3d_25frames_ckpt')
 }
 color_map = {
     'Current': '#fc8d62',
@@ -218,7 +218,7 @@ if plotting:
 
     # Add a legend
     handles, labels = plt.gca().get_legend_handles_labels()
-    unique_labels = ['Future', 'FT-T-Mixed', 'FT', 'Base', 'Current']
+    unique_labels = ['Future', 'FT-T-Mixed', 'Base', 'Current']
     unique_handles = [handles[labels.index(label)] for label in unique_labels]
     legend_position = 'upper left'  # Position of the legend
     legend_bbox_to_anchor = (0, 1)  # Bbox coordinates of the legend
