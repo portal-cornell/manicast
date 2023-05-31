@@ -145,11 +145,11 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
             tup = get_marker((i+2)*900+idx, 
                                         forecast_joints[time], 
                                         edge,
-                                        ns=f'forecast-{time}', 
+                                        ns=f'forecast{time}', 
                                         alpha=0.7-0.35*(time+1)/25,
                                         red=0.1, 
                                         green=0.1+0.15*(time+1)/25, 
-                                        blue=0.7-0.25*(time+1)/25)
+                                        blue=0.4+0.6*(time+1)/25)
             marker_array.markers.append(tup[0])
             marker_array.markers.append(tup[1])
 

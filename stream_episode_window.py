@@ -31,7 +31,7 @@ def get_future(all_joints, current_idx, future_length=25, skip_rate = 5):
         future_joints.append(get_relevant_joints(all_joints[idx]))
     return future_joints
 
-def get_forecast(history_joints):
+def get_forecast(history_joints, future_joints):
     history_joints = torch.Tensor(np.array(history_joints)).unsqueeze(0)
     current_left_hip = history_joints[:,-2:-1,-2:-1,:]
     current_hips = history_joints[:,-2:-1,-2:,:]
@@ -39,6 +39,18 @@ def get_forecast(history_joints):
     sequences_train=history_joints[:,:,:-2].permute(0,3,1,2)
     with torch.no_grad():
         sequences_predict=model(sequences_train).permute(0,1,3,2)
+        if args.prediction_method == "cvm":
+            start = sequences_train[:, :, 0:1, :7]
+            end = sequences_train[:, :, -1:, :7]
+            # import pdb; pdb.set_trace()
+            # print(start.shape)
+            # input()
+            mult = (torch.arange(args.output_n)+1).unsqueeze(0).unsqueeze(0).unsqueeze(3)
+            sequences_predict=end+mult*(end-start)/args.input_n
+            sequences_predict = sequences_predict.permute(0,2,1,3).permute(0,1,3,2)
+        if args.prediction_method == "future":
+            sequences_predict = torch.Tensor(future_joints)
+            return sequences_predict[0].cpu().numpy()
     current_hips_repeat = current_hips.repeat(1, sequences_predict.shape[1], 1, 1)
     forecast_joints = torch.cat([sequences_predict+current_left_hip, current_hips_repeat], dim=2)
     # import pdb; pdb.set_trace()
@@ -145,11 +157,11 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
             tup = get_marker((i+2)*900+idx, 
                                         forecast_joints[time], 
                                         edge,
-                                        ns=f'forecast-{time}', 
+                                        ns=f'forecast{time}', 
                                         alpha=0.7-0.35*(time+1)/25,
                                         red=0.1, 
                                         green=0.1+0.15*(time+1)/25, 
-                                        blue=0.7-0.25*(time+1)/25)
+                                        blue=0.4+0.6*(time+1)/25)
             marker_array.markers.append(tup[0])
             marker_array.markers.append(tup[1])
 
@@ -216,7 +228,7 @@ if __name__ == '__main__':
                 current_joints = get_relevant_joints(joint_data[timestep])
                 history_joints = get_history(joint_data, timestep)
                 future_joints = get_future(joint_data, timestep)
-                forecast_joints = get_forecast(history_joints)
+                forecast_joints = get_forecast(history_joints, future_joints)
                 marker_array = get_marker_array(current_joints=current_joints, 
                                                 future_joints=future_joints,
                                                 forecast_joints=forecast_joints,
