@@ -56,11 +56,11 @@ def get_forecast(history_joints, model):
     return forecast_joints[0].cpu().numpy()
     # pass
 
-episode_num = 1
+episode_num = 17
 model_folder = './checkpoints'
 episode_folder = "./mocap_data"
 activity = "stirring_reaction"
-episode_file = f"{episode_folder}/{activity}_data/val/{activity}_{episode_num}.json"
+episode_file = f"{episode_folder}/{activity}_data/test/{activity}_{episode_num}.json"
 stream_person = "Kushal"
 mapping_file = "./mapping.json"
 
@@ -84,8 +84,8 @@ def create_model(model_path):
 model_map = {
     'Base': create_model(f'{model_folder}/pretrained_unweighted/49_amass_3d_25frames_ckpt'),
     # 'FT-T-Mixed': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
-    'FT-T+J': create_model(f'{model_folder}/all_finetuned_wrist6_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
-    'FT': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_no_transitions_1e-04/49_amass_3d_25frames_ckpt')
+    'ManiCast': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
+    # 'FT': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_no_transitions_1e-04/49_amass_3d_25frames_ckpt')
 }
 color_map = {
     'Current': '#fc8d62',
@@ -93,8 +93,8 @@ color_map = {
     'Base': '#377eb8',
     # TODO: Create model trained on only our data
     # 'FT-T-Mixed': '#4daf4a',
-    'FT-T+J': '#4daf4a',
-    'FT': 'gray'
+    'ManiCast': '#4daf4a',
+    # 'FT': 'gray'
 }
 
 
@@ -107,8 +107,8 @@ with open(mapping_file, 'r') as f:
 
 joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
 
-start_time = 120*8
-end_time = 120*13
+start_time = 120*7
+end_time = len(data[stream_person])
 joint_data = np.array(data[stream_person])[start_time:end_time] # previously was 7 seconds
 
 threshold = 0.4
@@ -178,10 +178,10 @@ for timestep in range(joint_data.shape[0]):
 
 # print("Future reaction times = ", np.array(future_reaction_times)- np.array(current_reaction_times))
 # print("Forecast reaction times = ", np.array(forecast_reaction_times) - np.array(current_reaction_times))
-
+from matplotlib.font_manager import FontProperties
 matplotlib.rcParams['lines.linewidth'] = 1
 smooth = True
-plotting = True
+plotting = False
 if plotting:
     plot_folder = './plots/'
     plot_name = activity + f'{episode_num}_x' + '.png'
@@ -191,8 +191,8 @@ if plotting:
     future_x_values_smooth = np.convolve(future_x_values, np.ones(window_size)/window_size, mode='same')
     # plt.plot(time_values, current_x_values_smooth, label='Current', linestyle='--',zorder=9)
     current_mask = np.array(current_x_values_smooth) < threshold
-    plt.plot(time_values, np.where(current_mask, np.nan, current_x_values_smooth), label='Current', linestyle='--', zorder=9, alpha=1.0, color=color_map['Current'])
-    plt.plot(time_values, np.where(current_mask, current_x_values_smooth, np.nan), label='Current', linestyle='--', zorder=9, alpha=0.25, color=color_map['Current'])
+    plt.plot(time_values, np.where(current_mask, np.nan, current_x_values_smooth), label='Current', linestyle='--', zorder=20, alpha=1.0, color=color_map['Current'])
+    plt.plot(time_values, np.where(current_mask, current_x_values_smooth, np.nan), label='Current', linestyle='--', zorder=20, alpha=0.25, color=color_map['Current'])
     
 
 
@@ -203,13 +203,13 @@ if plotting:
     
 
     for i, (model_name, forecast_x) in enumerate(forecast_x_values.items()):
-        window_size = 17 if smooth else 1
+        window_size = 25 if smooth else 1
         # print(f'{model_name}: {forecast_x}')
         forecast_x_smooth = np.convolve(forecast_x, np.ones(window_size)/window_size, mode='same')
 
         mask = np.array(forecast_x_smooth) < threshold
-        plt.plot(time_values, np.where(mask, np.nan, forecast_x_smooth), label=f'{model_name}', linestyle='-', zorder=8-i, alpha=1.0, color=color_map[f'{model_name}'])
-        plt.plot(time_values, np.where(mask, forecast_x_smooth, np.nan), label=f'{model_name}', linestyle='-', zorder=8-i, alpha=0.25, color=color_map[f'{model_name}'])
+        plt.plot(time_values, np.where(mask, np.nan, forecast_x_smooth), label=f'{model_name}', linestyle='-', zorder=5 if model_name=='ManiCast' else 1, alpha=1.0, color=color_map[f'{model_name}'])
+        plt.plot(time_values, np.where(mask, forecast_x_smooth, np.nan), label=f'{model_name}', linestyle='-', zorder=5 if model_name=='ManiCast' else 1, alpha=0.25, color=color_map[f'{model_name}'])
         
 
     plt.axhline(y=threshold, color='black', linestyle='-', linewidth=1,zorder=0,alpha=0.5)
@@ -224,16 +224,19 @@ if plotting:
     plt.ylabel('X (m)')
 
     # Add a legend
+    font = FontProperties()
+    font.set_family('serif')
+    font.set_variant('small-caps')
     handles, labels = plt.gca().get_legend_handles_labels()
-    unique_labels = ['Future', 'FT-T+J', 'FT', 'Base', 'Current']
+    unique_labels = ['Future', 'ManiCast', 'Base', 'Current']
     unique_handles = [handles[labels.index(label)] for label in unique_labels]
     legend_position = 'upper left'  # Position of the legend
     legend_bbox_to_anchor = (0, 1)  # Bbox coordinates of the legend
     legend_fontsize = 'small'  # Font size of the legend text
 
-    plt.legend(unique_handles, unique_labels, loc=legend_position, bbox_to_anchor=legend_bbox_to_anchor, fontsize=legend_fontsize)
+    plt.legend(unique_handles, unique_labels, loc=legend_position, bbox_to_anchor=legend_bbox_to_anchor, fontsize=legend_fontsize, prop=font)
 
-    plt.gcf().set_size_inches(10, 2)
+    plt.gcf().set_size_inches(20, 4)
     plt.subplots_adjust(bottom=0.15)  # Increase or decrease the values as needed
 
 
@@ -249,7 +252,7 @@ if plotting_mpjpe:
     plot_name = activity + f'{episode_num}_loss' + '.png'
     # Create the plot
     for i, (model_name, forecast_loss) in enumerate(forecast_losses.items()):
-        window_size = 21 if smooth else 1
+        window_size = 25 if smooth else 1
         # print(f'{model_name}: {forecast_loss}')
         forecast_loss_smooth = np.convolve(forecast_loss, np.ones(window_size)/window_size, mode='same')
         plt.plot(time_values, forecast_loss_smooth, label=f'{model_name}', linestyle='-',zorder=8-i,color=color_map[f'{model_name}'])
@@ -262,6 +265,9 @@ if plotting_mpjpe:
     plt.ylabel('MPJPE (mm)')
 
     # Add a legend
+    font = FontProperties()
+    font.set_family('serif')
+    font.set_variant('small-caps')
     handles, labels = plt.gca().get_legend_handles_labels()
     unique_labels = list(set(labels))
     unique_handles = [handles[labels.index(label)] for label in unique_labels]
@@ -269,9 +275,9 @@ if plotting_mpjpe:
     legend_bbox_to_anchor = (0, 1)  # Bbox coordinates of the legend
     legend_fontsize = 'small'  # Font size of the legend text
 
-    plt.legend(unique_handles, unique_labels, loc=legend_position, bbox_to_anchor=legend_bbox_to_anchor, fontsize=legend_fontsize)
+    plt.legend(unique_handles, unique_labels, loc=legend_position, bbox_to_anchor=legend_bbox_to_anchor, fontsize=legend_fontsize, prop=font)
 
-    plt.gcf().set_size_inches(10, 2)
+    plt.gcf().set_size_inches(20, 4)
     plt.subplots_adjust(bottom=0.15)  # Increase or decrease the values as needed
 
 
