@@ -18,9 +18,9 @@ splits = [
                 'table_setting_data/val',
             ],
             [
-                'chopping_mixing_data/test',
-                'chopping_stirring_data/test',
-                # 'stirring_reaction_data/test',
+                # 'chopping_mixing_data/test',
+                # 'chopping_stirring_data/test',
+                'stirring_reaction_data/test',
                 # 'table_setting_data/test',
             ],
         ]

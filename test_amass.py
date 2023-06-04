@@ -100,16 +100,16 @@ if __name__ == '__main__':
         #         print(f'test/{joint}_fde', running_per_joint_fde[idx].item()/n)
         
         all_joints_ade_mean = np.array(running_per_joint_errors).mean(axis=1).mean()*1000
-        all_joints_ade_std = np.array(running_per_joint_errors).mean(axis=1).std()*1000
+        all_joints_ade_std = np.array(running_per_joint_errors).mean(axis=1).std()*1000/np.sqrt((n))
 
         all_joints_fde_mean = np.array(running_per_joint_fdes).mean(axis=1).mean()*1000
-        all_joints_fde_std = np.array(running_per_joint_fdes).mean(axis=1).std()*1000
+        all_joints_fde_std = np.array(running_per_joint_fdes).mean(axis=1).std()*1000/np.sqrt((n))
 
         wrist_ade_mean = np.array(running_per_joint_errors)[:, 5:7].mean(axis=1).mean()*1000
-        wrist_ade_std = np.array(running_per_joint_errors)[:, 5:7].mean(axis=1).std()*1000
+        wrist_ade_std = np.array(running_per_joint_errors)[:, 5:7].mean(axis=1).std()*1000/np.sqrt((n))
 
         wrist_fde_mean = np.array(running_per_joint_fdes)[:, 5:7].mean(axis=1).mean()*1000
-        wrist_fde_std = np.array(running_per_joint_fdes)[:, 5:7].mean(axis=1).std()*1000
+        wrist_fde_std = np.array(running_per_joint_fdes)[:, 5:7].mean(axis=1).std()*1000/np.sqrt((n))
 
         model_results_dict[model_path] = {
             'all_joints_ade': [all_joints_ade_mean, all_joints_ade_std],
@@ -125,12 +125,17 @@ if __name__ == '__main__':
             mean = round(model_results_dict[model_path][ade_metric][0], 1)
             std = round(model_results_dict[model_path][ade_metric][1], 1)
             print(f'{mean} (\pm {std})', end = ' &')
-
+            if model_path == "cvm":
+                print('&', end='')
+        print()
+        print('='*20)
+        for model_path in models:
             fde_metric = metric + '_fde'
             mean = round(model_results_dict[model_path][fde_metric][0], 1)
             std = round(model_results_dict[model_path][fde_metric][1], 1)
             print(f'{mean} (\pm {std})', end = ' &')
-            print('&', end='')
+            if model_path == "cvm":
+                print('&', end='')
         print()
         print('='*20)
 

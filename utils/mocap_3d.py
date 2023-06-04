@@ -21,8 +21,8 @@ default_splits = [
             [
                 # 'chopping_mixing_data/test',
                 # 'chopping_stirring_data/test',
-                # 'stirring_reaction_data/test',
-                'table_setting_data/test',
+                'stirring_reaction_data/test',
+                # 'table_setting_data/test',
             ],
         ]
 
