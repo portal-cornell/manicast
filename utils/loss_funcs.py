@@ -27,7 +27,7 @@ def weighted_mpjpe_error(batch_pred,batch_gt, joint_weights):
     batch_gt=batch_gt.contiguous()
     diff = batch_gt - batch_pred
     diff *= joint_weights
-
+    # import pdb; pdb.set_trace()
     return torch.mean(torch.norm(diff.view(-1,3),2,1))
 
 def perjoint_error(batch_pred, batch_gt):
@@ -35,13 +35,15 @@ def perjoint_error(batch_pred, batch_gt):
     batch_gt=batch_gt.contiguous()
     diff = batch_gt - batch_pred
     batch_joint_errors = torch.mean(torch.norm(diff,2,3), 1)
-    return torch.mean(batch_joint_errors,0)
+    return torch.mean(batch_joint_errors,0), batch_joint_errors
 
 def perjoint_fde(batch_pred, batch_gt):
     batch_pred = batch_pred.contiguous()
     batch_gt=batch_gt.contiguous()
     diff = batch_gt - batch_pred
-    return torch.mean(torch.norm(diff[:, -1],2,2), 0)
+    batch_joint_errors = torch.norm(diff[:, -1],2,2)
+    # import pdb; pdb.set_trace()
+    return torch.mean(batch_joint_errors,0), batch_joint_errors
     # import pdb; pdb.set_trace()
     # batch_joint_errors = torch.mean(torch.norm(diff,2,3), 1)
     # return torch.mean(batch_joint_errors,0)

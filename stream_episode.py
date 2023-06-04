@@ -182,6 +182,7 @@ if __name__ == '__main__':
 
 
     episode_file = f"/home/portal/MHAD_Processing/{args.activity}_data/{args.activity}_{args.ep_num}.json"
+    episode_file = "/home/portal/MHAD_Processing/final_handover_000.json"
     mapping_file = "mapping.json"
     with open(episode_file, 'r') as f:
         data = json.load(f)
