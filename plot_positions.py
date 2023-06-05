@@ -84,7 +84,7 @@ def create_model(model_path):
 model_map = {
     'Base': create_model(f'{model_folder}/pretrained_unweighted/49_amass_3d_25frames_ckpt'),
     # 'FT-T-Mixed': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
-    'ManiCast': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
+    'ManiCast': create_model(f'{model_folder}/all_finetuned_wrist6ft_hist10_mixed_transitions_1e-04/49_amass_3d_25frames_ckpt'),
     # 'FT': create_model(f'{model_folder}/all_finetuned_unweighted_hist10_no_transitions_1e-04/49_amass_3d_25frames_ckpt')
 }
 color_map = {
@@ -107,7 +107,7 @@ with open(mapping_file, 'r') as f:
 
 joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
 
-start_time = 120*7
+start_time = 120*2
 end_time = len(data[stream_person])
 joint_data = np.array(data[stream_person])[start_time:end_time] # previously was 7 seconds
 
@@ -139,22 +139,12 @@ for timestep in range(joint_data.shape[0]):
     x_max = np.array(current_joints)[[6], 0].max()
     if (timestep%step_interval) == 0:
         current_x_values.append(x_max)
-    if x_max < threshold: current_in_danger=False
-    if not current_in_danger and x_max > threshold:
-        current_reaction_times.append(timestep/120.0)
-        current_in_danger=True
-    
     history_joints = get_history(joint_data, timestep)
     future_joints = get_future(joint_data, timestep)
 
     x_max = np.array(future_joints)[-1, [6], 0].max()
     if (timestep%step_interval) == 0:
         future_x_values.append(x_max)
-    if x_max < threshold: future_in_danger=False
-    if not future_in_danger and x_max > threshold:
-        future_reaction_times.append(timestep/120.0)
-        future_in_danger=True
-
     for model_name, model in model_map.items():
         history_joints = get_history(joint_data, timestep, history_length=25 if ('25' in model_name) else 10)
         forecast_joints = get_forecast(history_joints, model)
@@ -167,10 +157,6 @@ for timestep in range(joint_data.shape[0]):
             forecast_losses[model_name].append(loss) # MPJPE
             # forecast_losses[model_name].append(per_joint_error[6])
             forecast_x_values[model_name].append(x_max)
-        if x_max < threshold: forecast_in_danger[model_name]=False
-        if not forecast_in_danger[model_name] and x_max > threshold:
-            forecast_reaction_times[model_name].append(timestep/120.0)
-            forecast_in_danger[model_name]=True
 
 # print(future_reaction_times)
 # print(current_reaction_times)
@@ -181,7 +167,7 @@ for timestep in range(joint_data.shape[0]):
 from matplotlib.font_manager import FontProperties
 matplotlib.rcParams['lines.linewidth'] = 1
 smooth = True
-plotting = False
+plotting = True
 if plotting:
     plot_folder = './plots/'
     plot_name = activity + f'{episode_num}_x' + '.png'
@@ -227,16 +213,20 @@ if plotting:
     font = FontProperties()
     font.set_family('serif')
     font.set_variant('small-caps')
+    font.set_size('8')
     handles, labels = plt.gca().get_legend_handles_labels()
     unique_labels = ['Future', 'ManiCast', 'Base', 'Current']
     unique_handles = [handles[labels.index(label)] for label in unique_labels]
-    legend_position = 'upper left'  # Position of the legend
+    legend_position = 'lower left'  # Position of the legend
     legend_bbox_to_anchor = (0, 1)  # Bbox coordinates of the legend
-    legend_fontsize = 'small'  # Font size of the legend text
+    legend_fontsize = 1  # Font size of the legend text
 
-    plt.legend(unique_handles, unique_labels, loc=legend_position, bbox_to_anchor=legend_bbox_to_anchor, fontsize=legend_fontsize, prop=font)
+    plt.legend(unique_handles, unique_labels, 
+               loc=legend_position, 
+            #    bbox_to_anchor=legend_bbox_to_anchor, 
+               fontsize=legend_fontsize, prop=font)
 
-    plt.gcf().set_size_inches(20, 4)
+    plt.gcf().set_size_inches(10, 2)
     plt.subplots_adjust(bottom=0.15)  # Increase or decrease the values as needed
 
 
@@ -260,14 +250,17 @@ if plotting_mpjpe:
     # Set plot title and labels
     # plt.title('MPJPE Loss')
     xticklabels = plt.xticks()[1]
-    modified_xticklabels = [str(label.get_text()) + "s" for label in xticklabels]
+
+    modified_xticklabels = [str(label.get_text()) + f"{idx*5}s" for idx, label in enumerate(xticklabels)]
     plt.xticks(plt.xticks()[0][1:-1], modified_xticklabels[1:-1])
-    plt.ylabel('MPJPE (mm)')
+    # plt.xticks(np.arange(7), ['0s', '5s', '10s', '15s', '20s', '25s', '30s'])
+    plt.ylabel('All Joints ADE (mm)')
 
     # Add a legend
     font = FontProperties()
     font.set_family('serif')
     font.set_variant('small-caps')
+    font.set_size('8')
     handles, labels = plt.gca().get_legend_handles_labels()
     unique_labels = list(set(labels))
     unique_handles = [handles[labels.index(label)] for label in unique_labels]
@@ -277,7 +270,7 @@ if plotting_mpjpe:
 
     plt.legend(unique_handles, unique_labels, loc=legend_position, bbox_to_anchor=legend_bbox_to_anchor, fontsize=legend_fontsize, prop=font)
 
-    plt.gcf().set_size_inches(20, 4)
+    plt.gcf().set_size_inches(10, 2)
     plt.subplots_adjust(bottom=0.15)  # Increase or decrease the values as needed
 
 
