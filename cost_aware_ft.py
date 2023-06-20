@@ -8,8 +8,9 @@ from utils.ang2joint import *
 from utils.loss_funcs import mpjpe_error, fde_error, weighted_mpjpe_error, perjoint_error
 from utils.amass_3d import *
 from utils.parser import args
-from utils.mocap_3d import Datasets as MoCapDatasets
+# from utils.mocap_3d import Datasets as MoCapDatasets
 from utils.costs_3d import Datasets as CostDatasets
+from utils.cost_funcs import calc_reactive_stirring_task_cost
 from utils.transitions_3d import Transitions
 from utils.read_json_data import read_json
 from torch.utils.tensorboard import SummaryWriter
@@ -19,5 +20,143 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 print('Using device: %s'%device)
 
-if __name__ == '__main__':
+def train(model, writer, joint_used, joint_names, model_name, joint_weights):
+    optimizer=optim.Adam(model.parameters(),lr=1e-4,weight_decay=1e-05)
+
     Dataset = CostDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
+    Dataset_val = CostDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
+    Dataset_test = CostDatasets('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
+
+    # Dataset_transitions_test = Transitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
+
+    loader_train = DataLoader(
+        Dataset,
+        batch_size=args.batch_size,
+        shuffle = True,
+        num_workers=0)    
+    
+    loader_val = DataLoader(
+        Dataset_val,
+        batch_size=args.batch_size,
+        shuffle = True,
+        num_workers=0)      
+
+    loader_test = DataLoader(
+        Dataset_test,
+        batch_size=args.batch_size,
+        shuffle =False,
+        num_workers=0)
+          
+
+    model.train()
+    for epoch in range(args.n_epochs):
+        running_loss=0
+        running_per_joint_error=0
+        running_fde=0
+        n=0
+        model.train()
+        for cnt,batch in enumerate(loader_train): 
+            forecast_human, other_human, is_reaching = [b.float().to(device) for b in batch] # multiply by 1000 for milimeters
+            batch_dim=forecast_human.shape[0]
+            n+=batch_dim
+            forecast_human_history=forecast_human[:,0:args.input_n,:,:].permute(0,3,1,2)
+            forecast_human_left_hip = forecast_human_history[:, :, args.input_n-1:, 21:22]
+            forecast_human_history_offset = forecast_human_history[:, :, :, joint_used] - forecast_human_left_hip
+            forecast_human_predict_gt=forecast_human[:,args.input_n:args.input_n+args.output_n,joint_used,:]
+            optimizer.zero_grad()
+            forecast_human_predict_offset=model(forecast_human_history_offset)
+            forecast_human_predict = forecast_human_predict_offset.permute(0,1,3,2)+forecast_human_left_hip.permute(0,2,3,1)
+            other_human_future = other_human[:, :, joint_used, :]
+            forecast_cost = calc_reactive_stirring_task_cost(forecast_human_predict, other_human_future, is_reaching)
+            future_cost = calc_reactive_stirring_task_cost(forecast_human_predict_gt, other_human_future, is_reaching)
+            cost_dif = torch.abs(forecast_cost-future_cost)
+            loss = weighted_mpjpe_error(forecast_human_predict,forecast_human_predict_gt, joint_weights)*1000+args.cost_weight*cost_dif
+            per_joint_error=perjoint_error(forecast_human_predict,forecast_human_predict_gt)*1000
+            fde=fde_error(forecast_human_predict,forecast_human_predict_gt)*1000          
+            loss.backward()
+            if args.clip_grad is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(),args.clip_grad)
+            optimizer.step()
+            running_loss += loss*batch_dim
+            running_per_joint_error += per_joint_error*batch_dim
+            running_fde += fde*batch_dim
+        print('[%d]  training loss: %.3f' %(epoch + 1, running_loss.item()/n))  
+        writer.add_scalar('train/mpjpe', running_loss.item()/n, epoch)
+        writer.add_scalar('train/fde', running_fde.item()/n, epoch)
+        for idx, joint in enumerate(joint_names):
+            writer.add_scalar(f'train/{joint}_error', running_per_joint_error[idx].item()/n, epoch)
+        
+        # model.eval()
+        # running_loss=0
+        # running_per_joint_error=0
+        # running_fde=0
+        # n=0
+        # with torch.no_grad():
+        #     for cnt,batch in enumerate(loader_val): 
+        #         batch = batch.float().to(device)[:, :, joint_used]
+        #         batch_dim=batch.shape[0]
+        #         n+=batch_dim
+        #         sequences_train=batch[:,0:args.input_n,:,:].permute(0,3,1,2)
+        #         sequences_predict_gt=batch[:,args.input_n:args.input_n+args.output_n,:,:]
+        #         sequences_predict=model(sequences_train)
+        #         loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
+        #         # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
+        #         per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
+        #         fde=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000   
+        #         running_loss += loss*batch_dim
+        #         running_per_joint_error += per_joint_error*batch_dim
+        #         running_fde += fde*batch_dim
+        # print('[%d]  validation loss: %.3f' %(epoch + 1, running_loss.item()/n))  
+        # writer.add_scalar('val/mpjpe', running_loss.item()/n, epoch)
+        # writer.add_scalar('val/fde', running_fde.item()/n, epoch)
+        # for idx, joint in enumerate(joint_names):
+        #     writer.add_scalar(f'val/{joint}_error', running_per_joint_error[idx].item()/n, epoch)
+        
+        # running_loss=0
+        # running_per_joint_error=0
+        # running_fde=0
+        # n=0
+        # with torch.no_grad():
+        #     for cnt,batch in enumerate(loader_transition_test): 
+        #         batch = batch.float().to(device)[:, :, joint_used]
+        #         batch_dim=batch.shape[0]
+        #         n+=batch_dim
+        #         sequences_train=batch[:,0:args.input_n,:,:].permute(0,3,1,2)
+        #         sequences_predict_gt=batch[:,args.input_n:args.input_n+args.output_n,:,:]
+        #         sequences_predict=model(sequences_train)
+        #         loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
+        #         # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
+        #         per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
+        #         fde=fde_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000   
+        #         running_loss += loss*batch_dim
+        #         running_per_joint_error += per_joint_error*batch_dim
+        #         running_fde += fde*batch_dim
+        # print('[%d]  testing loss: %.3f' %(epoch + 1, running_loss.item()/n))  
+        # writer.add_scalar('test/mpjpe', running_loss.item()/n, epoch)
+        # writer.add_scalar('test/fde', running_fde.item()/n, epoch)
+        # for idx, joint in enumerate(joint_names):
+        #     writer.add_scalar(f'test/{joint}_error', running_per_joint_error[idx].item()/n, epoch)
+
+        print('----saving model-----')
+        
+        pathlib.Path('./checkpoints/'+args.model_path).mkdir(parents=True, exist_ok=True)
+        torch.save(model.state_dict(),
+                   os.path.join('./checkpoints/'+args.model_path,f'{epoch}_{model_name}'),
+                   )
+        
+if __name__ == '__main__':
+    weight = args.weight
+    joint_weights_base = torch.tensor([1, 1, 1, 1, 1, 1, 1]).float().to(device)
+    joint_weights = joint_weights_base.unsqueeze(0).unsqueeze(0).unsqueeze(3)
+    joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',
+                      'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut']
+    mapping = read_json('./mapping.json')
+    joint_used = np.array([mapping[joint_name] for joint_name in joint_names])
+    model = Model(args.input_dim,args.input_n,
+                           args.output_n,args.st_gcnn_dropout,args.joints_to_consider,args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to(device)
+    model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
+
+    model.load_state_dict(torch.load(f'./checkpoints/{args.load_path}/49_{model_name}'))
+    print('total number of parameters of the network is: '+str(sum(p.numel() for p in model.parameters() if p.requires_grad)))
+    writer = SummaryWriter(log_dir='./finetune_logs_cost/' + args.model_path)
+    train(model, writer, joint_used, joint_names, model_name, joint_weights)

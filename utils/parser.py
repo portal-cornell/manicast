@@ -52,6 +52,12 @@ parser.add_argument('--weight',type=int,default=1,help= 'directory with the mode
 parser.add_argument('--lr_ft',type=float,default=1e-04,help='Learning rate of the optimizer for finetuning')
 parser.add_argument('--transitions',type=int,default=1,help= 'use transitions for training')
 parser.add_argument('--nontransitions',type=int,default=1,help= 'use non transitions for training')
+parser.add_argument('--cost_weight',type=float,default=1,help= 'weight for cost dif term in training')
+parser.add_argument('--activity',type=str,default='stirring_reaction',help= 'directory with the models checkpoints ')
+parser.add_argument('--ep_num',type=str,default='0',help= 'directory with the models checkpoints ')
+parser.add_argument('--model_num',type=int,default=49,help= 'directory with the models checkpoints ')
+parser.add_argument('--threshold',type=float,default=0.4,help= 'directory with the models checkpoints ')
+parser.add_argument('--stream_person',type=str,default="Kushal",help= 'directory with the models checkpoints ')
 
 #FLAGS FOR THE VISUALIZATION
 

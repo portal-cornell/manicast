@@ -94,7 +94,7 @@ class Datasets(Dataset):
                         if missing_data(skeleton_frames[start_frame:end_frame, joint_used, :]) or\
                             missing_data(other_frames[start_frame+input_n:end_frame, joint_used, :]):
                             missing_cnt += 1
-                            print("MISSED you")
+                            # print("MISSED you")
                             continue
                         self.data_lst.append(skeleton_frames[start_frame:end_frame, :, :])
                         self.other_lst.append(other_frames[start_frame+input_n:end_frame, :, :])
@@ -117,7 +117,7 @@ class Datasets(Dataset):
 
     def __getitem__(self, idx):
         # each element of the data list is of shape (sequence length, 25 joints, 3d)
-        return self.data_lst[idx]
+        return self.data_lst[idx], self.other_lst[idx], self.is_reaching_lst[idx]
 
 
 
