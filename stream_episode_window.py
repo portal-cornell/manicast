@@ -109,9 +109,9 @@ def get_marker(id, pose, edge, ns = 'current', alpha=1, red=1, green=1, blue=1):
     pos1, pos2 = pose[edge[0]], pose[edge[1]]
     p1, p2 = Point(), Point()
     x, y, z = pos1.tolist()
-    p1.x, p1.y, p1.z = -x, z, y
+    p1.x, p1.y, p1.z = -x-0.4, z, y
     x, y, z = pos2.tolist()
-    p2.x, p2.y, p2.z = -x, z, y
+    p2.x, p2.y, p2.z = -x-0.4, z, y
 
     p1m.points = [p1, p2]
     marker.points = [p1, p2]
@@ -152,16 +152,44 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
     #                                     alpha=0.4-0.1*((time+1)/25),
     #                                     color=0))
 
-    for i, time in enumerate([0,2,4,6,8,10,12,14,16,18,20,22,24]):
+    # for i, time in enumerate([0,2,4,6,8,10,12,14,16,18,20,22,24]):
+    # for i, time in enumerate([4, 9, 14, 19, 24]):
+    # # for i, time in enumerate(range(25)):
+    #     for idx, edge in enumerate(edges + extra_edges):
+    #         tup = get_marker((i+2)*900+idx, 
+    #                                     forecast_joints[time], 
+    #                                     edge,
+    #                                     ns=f'forecast{time}', 
+    #                                     alpha=0.7-0.35*(time+1)/25,
+    #                                     red=0.1, 
+    #                                     green=0.1+0.15*(time+1)/25, 
+    #                                     blue=0.4+0.6*(time+1)/25)
+    #         marker_array.markers.append(tup[0])
+    #         marker_array.markers.append(tup[1])
+    
+    # for i, time in enumerate([4, 9, 14, 19, 24]):
+    chosen = [3,7,11,16,21]
+    chosen = [21]
+    for i, time in enumerate(range(22)):
         for idx, edge in enumerate(edges + extra_edges):
-            tup = get_marker((i+2)*900+idx, 
+            if time not in chosen:
+                tup = get_marker((i+2)*900+idx, 
                                         forecast_joints[time], 
                                         edge,
                                         ns=f'forecast{time}', 
-                                        alpha=0.7-0.35*(time+1)/25,
+                                        alpha=0.15,
                                         red=0.1, 
-                                        green=0.1+0.15*(time+1)/25, 
-                                        blue=0.4+0.6*(time+1)/25)
+                                        green=0.1, 
+                                        blue=0.6)
+            else:
+                tup = get_marker((i+2)*900+idx, 
+                                            forecast_joints[time], 
+                                            edge,
+                                            ns=f'forecast{time}', 
+                                            alpha=1.0,
+                                            red=0.1, 
+                                            green=0.1, 
+                                            blue=1.0)
             marker_array.markers.append(tup[0])
             marker_array.markers.append(tup[1])
 
@@ -219,28 +247,30 @@ if __name__ == '__main__':
     person_data = {}
     for stream_person in data:
         person_data[stream_person] = np.array(data[stream_person])
-    for timestep in range(args.start_frame, args.end_frame):
-        print(round((timestep-args.start_frame)/120, 1))
-        if not pause and listener.running:
-            for stream_person in data:
-                if stream_person != "Kushal": continue
-                joint_data = person_data[stream_person]
-                current_joints = get_relevant_joints(joint_data[timestep])
-                history_joints = get_history(joint_data, timestep)
-                future_joints = get_future(joint_data, timestep)
-                forecast_joints = get_forecast(history_joints, future_joints)
-                marker_array = get_marker_array(current_joints=current_joints, 
-                                                future_joints=future_joints,
-                                                forecast_joints=forecast_joints,
-                                                person=stream_person)
-                # future_markers = get_future_markers(future_joints)
-                human_forecast.publish(marker_array)
-                rate.sleep()
-        else:
-            input("Press enter to continue")
-            pause = False
-            listener = keyboard.Listener(on_press=on_press)
-            listener.start()
+    for i in range(100):
+        for timestep in range(args.start_frame, args.end_frame, 1):
+            print(round((timestep-args.start_frame)/120, 1))
+            if not pause and listener.running:
+                for stream_person in data:
+                    if stream_person != "Kushal": continue
+                    joint_data = person_data[stream_person]
+                    current_joints = get_relevant_joints(joint_data[timestep])
+                    history_joints = get_history(joint_data, timestep)
+                    future_joints = get_future(joint_data, timestep)
+                    forecast_joints = get_forecast(history_joints, future_joints)
+                    marker_array = get_marker_array(current_joints=current_joints, 
+                                                    future_joints=future_joints,
+                                                    forecast_joints=forecast_joints,
+                                                    person=stream_person)
+                    # future_markers = get_future_markers(future_joints)
+                    human_forecast.publish(marker_array)
+                    rate.sleep()
+            else:
+                input("Press enter to continue")
+                pause = False
+                listener = keyboard.Listener(on_press=on_press)
+                listener.start()
+            break
 
 
 # import pdb; pdb.set_trace()

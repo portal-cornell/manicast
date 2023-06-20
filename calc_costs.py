@@ -106,7 +106,7 @@ def get_marker(id, pose, edge, ns = 'current', alpha=1, red=1, green=1, blue=1):
     return marker,p1m
 
 
-def get_marker_array(current_joints, future_joints, forecast_joints, person = "Kushal"):
+def get_marker_array(current_joints, person = "Kushal"):
     id_offset = 100000 if person == 'Kushal' else 0
     color = 1 if person == "Kushal" else 0
     marker_array = MarkerArray()
@@ -117,50 +117,14 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
         ]
     # extra edges to connect the pose back to the hips
     extra_edges = [(1, 7), (7, 8), (8, 2)]
-    # for idx, edge in enumerate(edges + extra_edges):
-    #     marker_array.markers.append(get_marker(idx+id_offset, 
-    #                                            current_joints, 
-    #                                            edge,
-    #                                            ns=f'current',
-    #                                            color=color))
     for idx, edge in enumerate(edges + extra_edges):
         tup = get_marker(idx+id_offset, current_joints, edge,ns=f'current', alpha=1, 
-                         red=0.1, 
+                         red=color, 
                          green=0.1, 
                          blue=0.0)
         marker_array.markers.append(tup[0])
         marker_array.markers.append(tup[1])
 
-    # for i, time in enumerate([24]):
-    #     for idx, edge in enumerate(edges + extra_edges):
-    #         marker_array.markers.append(get_marker((i+1)*9+idx, 
-    #                                     future_joints[time], 
-    #                                     edge, 
-    #                                     ns=f'future-{time}', 
-    #                                     alpha=0.4-0.1*((time+1)/25),
-    #                                     color=0))
-
-    for i, time in enumerate([0,2,4,6,8,10,12,14,16,18,20,22,24]):
-        for idx, edge in enumerate(edges + extra_edges):
-            tup = get_marker((i+2)*900+idx+id_offset, 
-                                        forecast_joints[time], 
-                                        edge,
-                                        ns=f'forecast{time}', 
-                                        alpha=0.7-0.35*(time+1)/25,
-                                        red=0.1, 
-                                        green=0.1+0.15*(time+1)/25, 
-                                        blue=0.4+0.6*(time+1)/25)
-            marker_array.markers.append(tup[0])
-            marker_array.markers.append(tup[1])
-
-    # for i, time in enumerate([24]):
-    #     for idx, edge in enumerate(edges + extra_edges):
-    #         marker_array.markers.append(get_marker((i+2)*900+idx+id_offset, 
-    #                                     forecast_joints[time], 
-    #                                     edge,
-    #                                     , 
-    #                                     alpha=0.4-0.1*((time+1)/25),
-    #                                     color=1))
     return marker_array
 
 
@@ -168,14 +132,6 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
 if __name__ == '__main__':
     rospy.init_node('forecaster', anonymous=True)
     human_forecast = rospy.Publisher("/human_forecast", MarkerArray, queue_size=1)
-
-    model = Model(args.input_dim,args.input_n, args.output_n,args.st_gcnn_dropout,args.joints_to_consider,
-                args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to('cpu')
-    model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
-    model.load_state_dict(torch.load(f'./checkpoints/{args.load_path}/{args.model_num}_{model_name}'))
-    # model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-    # print(model.eval())
-    model.eval()
 
     episode_file = f"/home/portal/MHAD_Processing/{args.activity}_data/{args.activity}_{args.ep_num}.json"
     # episode_file = "/home/portal/MHAD_Processing/final_handover_000.json"
@@ -199,33 +155,54 @@ if __name__ == '__main__':
     listener = keyboard.Listener(on_press=on_press)
     listener.start()
 
-    rate = rospy.Rate(120)
+    rate = rospy.Rate(1200)
 
     person_data = {}
     for stream_person in data:
         person_data[stream_person] = np.array(data[stream_person])
-    for timestep in range(len(data[list(data.keys())[0]])):
+
+    
+    def calc_cost(reaching_human, stirring_human):
+        cost = 0
+        reaching_human_wrist = reaching_human[6][0]
+        stirring_human_wrist = stirring_human[6][0]
+        print("Reaching Human = ", reaching_human_wrist)
+        print("Stirring Human = ", stirring_human_wrist)
+
+        if reaching_human_wrist > 0.4:
+            print("why")
+            cost = (0.96 - stirring_human_wrist)**2
+        print("Cost = ", cost)
+        # import pdb; pdb.set_trace()
+        return cost
+    costs = []
+    duration = len(data[list(data.keys())[0]])
+    for timestep in range(duration):
         print(round(timestep/120, 1))
         if not pause and listener.running:
+            current_data = {}
             for stream_person in data:
                 # if stream_person != "Kushal": continue
                 joint_data = person_data[stream_person]
                 current_joints = get_relevant_joints(joint_data[timestep])
-                history_joints = get_history(joint_data, timestep)
-                future_joints = get_future(joint_data, timestep)
-                forecast_joints = get_forecast(history_joints)
-                marker_array = get_marker_array(current_joints=current_joints, 
-                                                future_joints=future_joints,
-                                                forecast_joints=forecast_joints,
+                marker_array = get_marker_array(current_joints=current_joints,
                                                 person=stream_person)
+                current_data[stream_person] = np.array(current_joints)
                 # future_markers = get_future_markers(future_joints)
                 human_forecast.publish(marker_array)
                 rate.sleep()
+            cost = calc_cost(current_data['Kushal'], current_data['Prithwish'])
+            # import pdb; pdb.set_trace()
+            costs.append(cost)
         else:
             input("Press enter to continue")
             pause = False
             listener = keyboard.Listener(on_press=on_press)
             listener.start()
+    import matplotlib.pyplot as plt
+    
+    plt.plot(np.arange(duration)/120.0, costs)
+    plt.savefig("costs.png", dpi=900)
 
 
 # import pdb; pdb.set_trace()
