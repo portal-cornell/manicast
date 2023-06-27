@@ -109,7 +109,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         writer.add_scalar('train/forecast_cost', running_cost_forecast.item()/n, epoch)
         writer.add_scalar('train/future_cost', running_cost_future.item()/n, epoch)
         writer.add_scalar('train/cost_dif', running_cost_dif.item()/n, epoch)
-        for idx, joint in enumerate(['RWristOut', 'LWristOut']):
+        for idx, joint in enumerate(['LWristOut', 'RWristOut']):
             writer.add_scalar(f'train/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
         
         model.eval()
@@ -167,7 +167,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         writer.add_scalar('val/forecast_cost', running_cost_forecast.item()/n, epoch)
         writer.add_scalar('val/future_cost', running_cost_future.item()/n, epoch)
         writer.add_scalar('val/cost_dif', running_cost_dif.item()/n, epoch)
-        for idx, joint in enumerate(['RWristOut', 'LWristOut']):
+        for idx, joint in enumerate(['LWristOut', 'RWristOut']):
             writer.add_scalar(f'val/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
         
         running_loss=0
@@ -224,7 +224,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         writer.add_scalar('test/forecast_cost', running_cost_forecast.item()/n, epoch)
         writer.add_scalar('test/future_cost', running_cost_future.item()/n, epoch)
         writer.add_scalar('test/cost_dif', running_cost_dif.item()/n, epoch)
-        for idx, joint in enumerate(['RWristOut', 'LWristOut']):
+        for idx, joint in enumerate(['LWristOut', 'RWristOut']):
             writer.add_scalar(f'test/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
 
         print('----saving model-----')

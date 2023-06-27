@@ -108,6 +108,21 @@ if __name__ == '__main__':
     print(rounder(current_stop_times))
     print(rounder(forecast_stop_times))
 
+    restart_times = []
+    for cs in current_start_times:
+        for fs in forecast_start_times:
+            if fs < cs and fs > cs -1:
+                restart_times.append(cs-fs)
+                break
+    
+    stop_times = []
+    for cs in current_stop_times:
+        for fs in forecast_stop_times:
+            if fs < cs and fs > cs -1:
+                stop_times.append(cs-fs)
+                break
+    print(np.mean(np.array(restart_times)))
+    print(np.mean(np.array(stop_times)))
 # print("Future reaction times = ", np.array(future_reaction_times)- np.array(current_reaction_times))
 # print("Current reaction times = ", current_reaction_times)
 # print("Forecast reaction times = ", np.array(forecast_reaction_times) - np.array(current_reaction_times))
