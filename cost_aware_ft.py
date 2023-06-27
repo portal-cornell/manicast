@@ -73,15 +73,16 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
             forecast_cost = calc_reactive_stirring_task_cost(forecast_human_predict, other_human_future, is_reaching)
             future_cost = calc_reactive_stirring_task_cost(forecast_human_predict_gt, other_human_future, is_reaching)
-            cost_dif = torch.mean(torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
+            cost_dif = (torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
             all_joints_error = weighted_mpjpe_error(forecast_human_predict,forecast_human_predict_gt, joint_weights)*1000
 
+            # import pdb; pdb.set_trace()
             if args.weight_using == "forecast":
-                loss = torch.exp(args.cost_weight*torch.mean(torch.sum(forecast_cost, dim=1)))*all_joints_error
+                loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(forecast_cost, dim=1)))*all_joints_error)
             elif args.weight_using == "future":
-                loss = torch.exp(args.cost_weight*torch.mean(torch.sum(forecast_cost, dim=1)))*all_joints_error
+                loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(future_cost, dim=1)))*all_joints_error)
             elif args.weight_using == "difference":
-                loss = torch.exp(args.cost_weight*cost_dif)*all_joints_error
+                loss = torch.mean(torch.exp(args.cost_weight*cost_dif)*all_joints_error)
 
             per_joint_error=perjoint_error(forecast_human_predict,forecast_human_predict_gt)*1000
             fde=fde_error(forecast_human_predict,forecast_human_predict_gt)*1000          
@@ -95,11 +96,11 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
             n+=batch_dim
             running_loss += loss*batch_dim
             running_per_joint_error += per_joint_error*batch_dim
-            running_all_joints_error += all_joints_error*batch_dim
+            running_all_joints_error += torch.mean(all_joints_error)*batch_dim
             running_fde += fde*batch_dim
             running_cost_forecast += torch.mean(torch.sum(forecast_cost, dim=1))*batch_dim
             running_cost_future += torch.mean(torch.sum(future_cost, dim=1))*batch_dim
-            running_cost_dif += cost_dif*batch_dim
+            running_cost_dif += torch.mean(cost_dif)*batch_dim
 
         print('[%d]  training loss: %.3f' %(epoch + 1, running_loss.item()/n))  
         writer.add_scalar('train/mpjpe', running_all_joints_error.item()/n, epoch)
@@ -109,7 +110,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         writer.add_scalar('train/future_cost', running_cost_future.item()/n, epoch)
         writer.add_scalar('train/cost_dif', running_cost_dif.item()/n, epoch)
         for idx, joint in enumerate(['RWristOut', 'LWristOut']):
-            writer.add_scalar(f'train/{joint}_error', running_per_joint_error[idx].item()/n, epoch)
+            writer.add_scalar(f'train/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
         
         model.eval()
         running_loss=0
@@ -135,15 +136,15 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
                 forecast_cost = calc_reactive_stirring_task_cost(forecast_human_predict, other_human_future, is_reaching)
                 future_cost = calc_reactive_stirring_task_cost(forecast_human_predict_gt, other_human_future, is_reaching)
-                cost_dif = torch.mean(torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
+                cost_dif = (torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
                 all_joints_error = weighted_mpjpe_error(forecast_human_predict,forecast_human_predict_gt, joint_weights)*1000
 
                 if args.weight_using == "forecast":
-                    loss = torch.exp(args.cost_weight*torch.mean(torch.sum(forecast_cost, dim=1)))*all_joints_error
+                    loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(forecast_cost, dim=1)))*all_joints_error)
                 elif args.weight_using == "future":
-                    loss = torch.exp(args.cost_weight*torch.mean(torch.sum(forecast_cost, dim=1)))*all_joints_error
+                    loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(future_cost, dim=1)))*all_joints_error)
                 elif args.weight_using == "difference":
-                    loss = torch.exp(args.cost_weight*cost_dif)*all_joints_error
+                    loss = torch.mean(torch.exp(args.cost_weight*cost_dif)*all_joints_error)
 
                 per_joint_error=perjoint_error(forecast_human_predict,forecast_human_predict_gt)*1000
                 fde=fde_error(forecast_human_predict,forecast_human_predict_gt)*1000          
@@ -153,11 +154,11 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
                 n+=batch_dim
                 running_loss += loss*batch_dim
                 running_per_joint_error += per_joint_error*batch_dim
-                running_all_joints_error += all_joints_error*batch_dim
+                running_all_joints_error += torch.mean(all_joints_error)*batch_dim
                 running_fde += fde*batch_dim
                 running_cost_forecast += torch.mean(torch.sum(forecast_cost, dim=1))*batch_dim
                 running_cost_future += torch.mean(torch.sum(future_cost, dim=1))*batch_dim
-                running_cost_dif += cost_dif*batch_dim
+                running_cost_dif += torch.mean(cost_dif)*batch_dim
 
         print('[%d]  val loss: %.3f' %(epoch + 1, running_loss.item()/n))  
         writer.add_scalar('val/mpjpe', running_all_joints_error.item()/n, epoch)
@@ -167,7 +168,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         writer.add_scalar('val/future_cost', running_cost_future.item()/n, epoch)
         writer.add_scalar('val/cost_dif', running_cost_dif.item()/n, epoch)
         for idx, joint in enumerate(['RWristOut', 'LWristOut']):
-            writer.add_scalar(f'val/{joint}_error', running_per_joint_error[idx].item()/n, epoch)
+            writer.add_scalar(f'val/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
         
         running_loss=0
         running_all_joints_error=0
@@ -192,15 +193,15 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
                 forecast_cost = calc_reactive_stirring_task_cost(forecast_human_predict, other_human_future, is_reaching)
                 future_cost = calc_reactive_stirring_task_cost(forecast_human_predict_gt, other_human_future, is_reaching)
-                cost_dif = torch.mean(torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
+                cost_dif = (torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
                 all_joints_error = weighted_mpjpe_error(forecast_human_predict,forecast_human_predict_gt, joint_weights)*1000
 
                 if args.weight_using == "forecast":
-                    loss = torch.exp(args.cost_weight*torch.mean(torch.sum(forecast_cost, dim=1)))*all_joints_error
+                    loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(forecast_cost, dim=1)))*all_joints_error)
                 elif args.weight_using == "future":
-                    loss = torch.exp(args.cost_weight*torch.mean(torch.sum(forecast_cost, dim=1)))*all_joints_error
+                    loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(future_cost, dim=1)))*all_joints_error)
                 elif args.weight_using == "difference":
-                    loss = torch.exp(args.cost_weight*cost_dif)*all_joints_error
+                    loss = torch.mean(torch.exp(args.cost_weight*cost_dif)*all_joints_error)
 
                 per_joint_error=perjoint_error(forecast_human_predict,forecast_human_predict_gt)*1000
                 fde=fde_error(forecast_human_predict,forecast_human_predict_gt)*1000          
@@ -210,11 +211,11 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
                 n+=batch_dim
                 running_loss += loss*batch_dim
                 running_per_joint_error += per_joint_error*batch_dim
-                running_all_joints_error += all_joints_error*batch_dim
+                running_all_joints_error += torch.mean(all_joints_error)*batch_dim
                 running_fde += fde*batch_dim
                 running_cost_forecast += torch.mean(torch.sum(forecast_cost, dim=1))*batch_dim
                 running_cost_future += torch.mean(torch.sum(future_cost, dim=1))*batch_dim
-                running_cost_dif += cost_dif*batch_dim
+                running_cost_dif += torch.mean(cost_dif)*batch_dim
 
         print('[%d]  test loss: %.3f' %(epoch + 1, running_loss.item()/n))  
         writer.add_scalar('test/mpjpe', running_all_joints_error.item()/n, epoch)
@@ -224,7 +225,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
         writer.add_scalar('test/future_cost', running_cost_future.item()/n, epoch)
         writer.add_scalar('test/cost_dif', running_cost_dif.item()/n, epoch)
         for idx, joint in enumerate(['RWristOut', 'LWristOut']):
-            writer.add_scalar(f'test/{joint}_error', running_per_joint_error[idx].item()/n, epoch)
+            writer.add_scalar(f'test/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
 
         print('----saving model-----')
         

@@ -27,8 +27,8 @@ def weighted_mpjpe_error(batch_pred,batch_gt, joint_weights):
     batch_gt=batch_gt.contiguous()
     diff = batch_gt - batch_pred
     diff *= joint_weights
-
-    return torch.mean(torch.norm(diff.view(-1,3),2,1))
+    all_joints_error = (torch.norm(diff.view(-1,3),2,1)).view(batch_pred.shape[0], -1)
+    return torch.mean(all_joints_error, dim=1)
 
 def perjoint_error(batch_pred, batch_gt):
     batch_pred = batch_pred.contiguous()
