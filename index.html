@@ -6,17 +6,17 @@
 
 <html lang="en">
 <head>
-  	<title>Game Theoretic Forecasting and Planning</title>
+  	<title>ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting</title>
       <!-- Facebook automatically scrapes this. Go to https://developers.facebook.com/tools/debug/
           if you update and want to force Facebook to re-scrape. -->
   	<meta property="og:image" content="./resources/framework.png"/>
-  	<meta property="og:title" content="Game-Theoretic Forecasting and Planning" />
-  	<meta property="og:description" content="A Game-Theoretic Framework for Joint Forecasting and Planning" />
+  	<meta property="og:title" content="Collaborative Manipulation with Cost-Aware Human Forecasting" />
+  	<meta property="og:description" content="ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting" />
     <!-- Twitter automatically scrapes this. Go to https://cards-dev.twitter.com/validator?
         if you update and want to force Twitter to re-scrape. -->
     <meta property="twitter:card"          content="summary" />
-    <meta property="twitter:title"         content="Game-Theoretic Forecasting and Planning" />
-    <meta property="twitter:description"   content="A Game-Theoretic Framework for Joint Forecasting and Planning" />
+    <meta property="twitter:title"         content="Collaborative Manipulation with Cost-Aware Human Forecasting" />
+    <meta property="twitter:description"   content="ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting" />
     <meta property="twitter:image"         content="./framework.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -30,11 +30,11 @@
     </div>
 
     <div class="title" style="font-size:40px;">
-        A Game-Theoretic Framework for <br>Joint Forecasting and Planning
+        ManiCast: Collaborative Manipulation <br>with Cost-Aware Human Forecasting
     </div>
 
     <div class="venue">
-        IROS 2023
+        CoRL 2023
     </div>
 
     <br><br>
@@ -43,7 +43,10 @@
         <a href="https://kushal2000.github.io/">Kushal Kedia</a><sup>*</sup>
     </div>
     <div class="author">
-        Prithwish Dan<sup>*</sup>
+        <a href="https://portfolio-pdan101.vercel.app/"">Prithwish Dan</a><sup>*</sup>
+    </div>
+    <div class="author">
+        Atiksh Bhardwaj<sup>*</sup>
     </div>
     <div class="author">
         <a href="https://www.sanjibanchoudhury.com/">Sanjiban Choudhury</a><sup>*</sup>
@@ -59,20 +62,25 @@
 
     <br><br>
 
-    <div class="links"><a href="http://arxiv.org/abs/2308.06137">[Paper]</a></div>
-    <!-- <div class="links">[Paper]</div> -->
-    <div class="links"><a href="https://github.com/portal-cornell/game-theoretic-forecasting-planning">[Code]</a></div>
+    <!-- <div class="links"><a href="http://arxiv.org/abs/2308.06137">[Paper]</a></div> -->
+    <div class="links">[Paper]</div>
+    <!-- <div class="links"><a href="https://github.com/portal-cornell/game-theoretic-forecasting-planning">[Code]</a></div> -->
+    <div class="links">[Code]</div>
 
     <br><br>
 
-    <img style="width: 100%;" src="./resources/framework.png" alt="Method Overview."/>
+    <img style="width: 90%;" src="./resources/approach_fig.png" alt="Method Overview."/>
     <br><br>
     
         <p style="max-width: 950px;width:90%;text-align: justify;text-justify: inter-word;">
-            Overview of our <b>game-theoretic framework</b> for joint forecasting and planning. 
-            The forecaster maximizes the <b>performance difference</b> between the generated plans and the observed plans. 
-            This results in <b>counterfactual forecasts</b> for the cyclist veering into the vehicle's lane that encourages 
-            the planner to <b>guard</b> by nudging away from the cyclist.
+            Overview of our framework <b>ManiCast</b>, 
+            which learns <b>cost-aware human motion forecasts</b> and <b>plans with such forecasts</b>
+            for <b>collaborative manipulation</b> tasks. At train time, we fine-tune pre-trained 
+            human motion forecasting models on task specific datasets by upsampling 
+            transition points and upweighting joint dimensions that dominate the cost 
+            of the robot's planned trajectory. At inference time, we feed these forecasts 
+            into a model predictive control (MPC) planner to compute robot plans that 
+            are <b>reactive</b> and keep a <b>safe distance</b> from the human.
         </p>
         
     <br>
@@ -80,23 +88,16 @@
 
     <h1>Abstract</h1>
     <p style="width: 80%;text-align: justify;">
-        Planning safe robot motions in the presence of humans
-         requires reliable forecasts of future human motion. 
-         However, simply predicting the most likely motion 
-         from prior interactions does not guarantee safety. 
-         Such forecasts fail to model the long tail of possible 
-         events, which are rarely observed in limited datasets. 
-         On the other hand, planning for worst-case motions leads 
-         to overtly conservative behavior and a <q>frozen robot</q>. 
-         Instead, we aim to learn forecasts that predict counterfactuals 
-         that humans guard against. We propose a novel game-theoretic 
-         framework for joint planning and forecasting with 
-         the payoff being the performance of the planner against 
-         the demonstrator, and present practical algorithms to 
-         train models in an end-to-end fashion. We demonstrate 
-         that our proposed algorithm results in safer plans in a 
-         crowd navigation simulator and real-world datasets of 
-         pedestrian motion. 
+        Seamless human-robot manipulation in close proximity relies on accurate forecasts of human motion. 
+        While there has been significant progress in learning forecast models at scale, when applied to manipulation tasks,
+         these models accrue high errors at critical transition points leading to degradation in downstream planning performance. 
+         Our key insight is that instead of predicting the most likely human motion, it is sufficient to produce forecasts that
+          capture how future human motion would affect the cost of a robot's plan. We present ManiCast, 
+          a novel framework that learns cost-aware human forecasts and feeds them to a model predictive control planner to execute 
+          collaborative manipulation tasks. Our framework enables fluid, real-time interactions between a human and a 7-DoF robot arm 
+          across a number of real-world tasks such as reactive stirring, object handovers, and collaborative table setting. 
+          We evaluate both the motion forecasts and the end-to-end forecaster-planner system against a range of learned and 
+          heuristic baselines while additionally contributing new datasets. 
     </p>
 
     <br><br>
@@ -109,60 +110,94 @@
                 allowfullscreen></iframe>
     </div> -->
 
-    <video width="800px";
+    <!-- <video width="800px";
     frameBorder="0"; 
     controls="controls";
     style="border:2px solid black";>
         <source src="./resources/video.mp4" type="video/mp4"></source>
-    </video>
+    </video> -->
 
     <br><br><br><br>
     <hr>
 
 
-    <h1>Crowd Navigation Simulation</h1>
-    <p style="width: 80%;text-align: justify;">
+    <h1>Collaborative Manipulation Tasks</h1>
+    <!-- <p style="width: 80%;text-align: justify;">
         Compared with MLE-Forecasting, our game-theoretic framework 
         leads to safer planning on simulation of human-robot crowd 
         navigation. Adversarial Forecasts generated by the 
         framework pose more severe hazards when 
         compared with MLE Forecasts. Guarding against these 
         forecasts allows our framework to generate plans that are robust to unexpected events.
+    </p> -->
+    <h2>Object Handover</h2>
+    <video width="400px";
+    frameBorder="1"; 
+    controls="controls";
+    style="border:2px solid black";>
+        <source src="./resources/Handover_Manicast.mp4" type="video/mp4"></source>
+    </video>
+    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
+        When performing an object handover, humans naturally predict the handover location 
+        and move their hand to that spot. In order for a robot to do so, it must forecast 
+        the handover location and plan its actions accordingly. Compared to the robot following 
+        the human's current pose or planning under the assumption that the human will be moving 
+        at a constant velocity, planning with ManiCast forecasts produces seamless and realistic 
+        interactions.
     </p>
 
-    <div class="grid-container">
-        <div class="grid-item">
-            <figure> 
-                <img src="./resources/gifs/MLE.gif" alt="MLE">
-                <figcaption>MLE Forecasting</figcaption>
-            </figure>
-        </div>
-        <div class="grid-item">
-            <figure> 
-                <img src="./resources/gifs/SAFE.gif" alt="SAFE">
-                <figcaption>Game-Theoretic Framework (ours)</figcaption>
-            </figure>
-        </div>
-    </div>
+    <h2>Reactive Stirring</h2>
+    <video width="400px";
+    frameBorder="0"; 
+    controls="controls";
+    style="border:2px solid black";>
+        <source src="./resources/Stirring_Manicast.mp4" type="video/mp4"></source>
+    </video>
+    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
+        While the robot is stirring the pot, the human periodically wants to 
+        add more vegetables to the pot. For this interaction to occur comfortably,
+        the robot must anticipate the human's intent to enter its workspace and pause 
+        its stirring momentarily before resuming when the human plans to exit its 
+        workspace. Robot manipulation planning is often slow and leads to 
+        an uncomfortable retraction, whereas planning with ManiCast forecasts ensures 
+        a faster reaction time both when the human moves to place vegetables and 
+        when the human is returning to chopping more vegetables.
+    </p>
+
+    <h2>Tabletop Manipulation</h2>
+    <video width="400px";
+    frameBorder="0"; 
+    controls="controls";
+    style="border:2px solid black";>
+        <source src="./resources/Tabletop_ManiCast.mp4" type="video/mp4"></source>
+    </video>
+    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
+        The human and robot each have their own respective goals, namely picking up 
+        different items from the table which are in close proximity. Carrying out their plans to 
+        pick up the items may lead to collisions or uncomfortable interactions. Compared to 
+        simply planning robot manipulation based on the current position of the human, incorporating 
+        ManiCast forecasts into the planner's cost function ensures safety and smoothness.
+    </p>
+
     <hr>
 
     <h1>Paper</h1>
-    <div class="paper-thumbnail">
+    <!-- <div class="paper-thumbnail">
         <a href="https://arxiv.org/pdf/2308.06137.pdf">
             <img class="layered-paper-big" width="100%" src="./resources/preview.png" alt="Paper thumbnail"/>
         </a>
-    </div>
-    <div class="paper-info">
+    </div> -->
+    <!-- <div class="paper-info">
         <a href="https://arxiv.org/pdf/2308.06137.pdf"><h3>A Game-Theoretic Framework for <br>Joint Forecasting and Planning</h3></a>
         <p>Kushal Kedia, Prithwish Dan, Sanjiban Choudhury</p>
-        <!-- <p>Under review (2023)</p> -->
         <pre><code>@inproceedings{kedia2023game,
-title={A Game-Theoretic Framework for Joint Forecasting and Planning},
-author={Kedia, Kushal and Dan, Prithwish and Choudhury, Sanjiban},
-booktitle={IROS},
-year={2023}
-}        </code></pre> 
-    </div>
+        title={A Game-Theoretic Framework for Joint Forecasting and Planning},
+        author={Kedia, Kushal and Dan, Prithwish and Choudhury, Sanjiban},
+        booktitle={IROS},
+        year={2023}
+        }        
+        </code></pre> 
+    </div> -->
 
     <br><br>
     <hr>
