@@ -1,0 +1,6 @@
+__pycache__
+checkpoints*
+data*
+finalized*
+*logs*
+datasets.zip
