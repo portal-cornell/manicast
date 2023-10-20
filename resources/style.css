@@ -20,6 +20,13 @@ body {
     display: none;
   }
 
+  #cornell {
+    width: 7.5%;
+    position: fixed;
+    top: 1.75%;
+    right: 1%;
+  }
+
   #logo {
     width: 7.5%;
     position: fixed;
@@ -47,6 +54,12 @@ body {
     width: 10%;
     top: 0;
     left: 0;
+  }
+
+  #cornell {
+    width: 10%;
+    top: 0;
+    right: 0;
   }
 }
 
