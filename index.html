@@ -65,7 +65,7 @@
     <div class="links"><a href="https://openreview.net/forum?id=rxlokRzNWRq">[Paper]</a></div>
     <!-- <div class="links">[Paper]</div> -->
     <!-- <div class="links"><a href="https://github.com/portal-cornell/game-theoretic-forecasting-planning">[Code]</a></div> -->
-    <div class="links">[Code (Coming Soon)]</div>
+    <div class="links">[Code <br>(Coming Soon)]</div>
 
     <br><br>
 
@@ -104,11 +104,11 @@
     <hr>
 
     <h1>Video</h1>
-    <!-- <div class="video-container">
-        <iframe src="./resources/Final_IROS.mp4" frameBorder="0"
+    <div class="video-container">
+        <iframe src="./resources/Spotlight.mp4" frameBorder="0"
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen></iframe>
-    </div> -->
+    </div>
 
     <!-- <video width="800px";
     frameBorder="0"; 
@@ -130,24 +130,30 @@
         compared with MLE Forecasts. Guarding against these 
         forecasts allows our framework to generate plans that are robust to unexpected events.
     </p> -->
-    <h2>Object Handover</h2>
-    <video width="400px";
-    frameBorder="1"; 
-    controls="controls";
-    style="border:2px solid black";>
-        <source src="./resources/Handover_Manicast.mp4" type="video/mp4"></source>
-    </video>
-    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
-        When performing an object handover, humans naturally predict the handover location 
-        and move their hand to that spot. In order for a robot to do so, it must forecast 
-        the handover location and plan its actions accordingly. Compared to the robot following 
-        the human's current pose or planning under the assumption that the human will be moving 
-        at a constant velocity, planning with ManiCast forecasts produces seamless and realistic 
-        interactions.
-    </p>
+
+    <!-- <div class="grid-container">
+        <div class="grid-item">
+            <figure> 
+                <img src="./resources/Handover_Manicast.gif" alt="MLE">
+                <figcaption>Object Handover</figcaption>
+            </figure>
+        </div>
+        <div class="grid-item">
+            <figure> 
+                <img src="./resources/Stirring_Manicast.gif" alt="SAFE">
+                <figcaption>Reactive Stirring</figcaption>
+            </figure>
+        </div>
+        <div class="grid-item center">
+            <figure> 
+                <img src="./resources/Tabletop_ManiCast.gif" alt="SAFE">
+                <figcaption>Tabletop Manipulation</figcaption>
+            </figure>
+        </div>
+    </div> -->
 
     <h2>Reactive Stirring</h2>
-    <video width="400px";
+    <video height="400px";
     frameBorder="0"; 
     controls="controls";
     style="border:2px solid black";>
@@ -165,7 +171,7 @@
     </p>
 
     <h2>Tabletop Manipulation</h2>
-    <video width="400px";
+    <video height="450px";
     frameBorder="0"; 
     controls="controls";
     style="border:2px solid black";>
@@ -177,6 +183,22 @@
         pick up the items may lead to collisions or uncomfortable interactions. Compared to 
         simply planning robot manipulation based on the current position of the human, incorporating 
         ManiCast forecasts into the planner's cost function ensures safety and smoothness.
+    </p>
+
+    <h2>Object Handover</h2>
+    <video height="500px";
+    frameBorder="1"; 
+    controls="controls";
+    style="border:2px solid black";>
+        <source src="./resources/Handover_Manicast.mp4" type="video/mp4"></source>
+    </video>
+    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
+        When performing an object handover, humans naturally predict the handover location 
+        and move their hand to that spot. In order for a robot to do so, it must forecast 
+        the handover location and plan its actions accordingly. Compared to the robot following 
+        the human's current pose or planning under the assumption that the human will be moving 
+        at a constant velocity, planning with ManiCast forecasts produces seamless and realistic 
+        interactions.
     </p>
 
     <hr>
