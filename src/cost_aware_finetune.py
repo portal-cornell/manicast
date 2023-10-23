@@ -8,8 +8,8 @@ from utils.ang2joint import *
 from utils.loss_funcs import mpjpe_error, fde_error, weighted_mpjpe_error, perjoint_error
 from utils.parser import args
 from data.costs import *
+from data.transitions import *
 from utils.cost_funcs import calc_reactive_stirring_task_cost
-from utils.transitions_3d import Transitions
 from utils.read_json_data import read_json
 from torch.utils.tensorboard import SummaryWriter
 import pathlib
@@ -17,6 +17,74 @@ import pathlib
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 print('Using device: %s'%device)
+
+def update_step(epoch, model, writer, joint_used, joint_names, joint_weights, 
+                dataloader, optimizer=None, eval=True, step_type='test'):
+    if eval:
+        model.eval()
+    else:
+        model.train()
+    running_loss=0
+    running_all_joints_error=0
+    running_per_joint_error=0
+    running_fde=0
+    running_cost_forecast=0
+    running_cost_future=0
+    running_cost_dif=0
+    n=0
+    for cnt,batch in enumerate(dataloader): 
+        forecast_human, other_human, is_reaching = [b.float().to(device) for b in batch] # multiply by 1000 for milimeters
+        forecast_human_history=forecast_human[:,0:args.input_n,:,:].permute(0,3,1,2)
+        forecast_human_left_hip = forecast_human_history[:, :, args.input_n-1:, 21:22]
+        forecast_human_history_offset = forecast_human_history[:, :, :, joint_used] - forecast_human_left_hip
+        forecast_human_predict_gt=forecast_human[:,args.input_n:args.input_n+args.output_n,joint_used,:]
+
+        if not eval:
+            optimizer.zero_grad()
+        forecast_human_predict_offset=model(forecast_human_history_offset)
+        forecast_human_predict = forecast_human_predict_offset.permute(0,1,3,2)+forecast_human_left_hip.permute(0,2,3,1)
+        other_human_future = other_human[:, :, joint_used, :]
+
+        forecast_cost = calc_reactive_stirring_task_cost(forecast_human_predict, other_human_future, is_reaching)
+        future_cost = calc_reactive_stirring_task_cost(forecast_human_predict_gt, other_human_future, is_reaching)
+        cost_dif = (torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
+        all_joints_error = weighted_mpjpe_error(forecast_human_predict,forecast_human_predict_gt, joint_weights)*1000
+
+        if args.weight_using == "forecast":
+            loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(forecast_cost, dim=1)))*all_joints_error)
+        elif args.weight_using == "future":
+            loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(future_cost, dim=1)))*all_joints_error)
+        elif args.weight_using == "difference":
+            loss = torch.mean(torch.exp(args.cost_weight*cost_dif)*all_joints_error)
+
+        per_joint_error=perjoint_error(forecast_human_predict,forecast_human_predict_gt)*1000
+        fde=fde_error(forecast_human_predict,forecast_human_predict_gt)*1000    
+        if not eval:
+            loss.backward()
+            if args.clip_grad is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(),args.clip_grad)
+            optimizer.step()
+
+        #### Save all metrics for logging
+        batch_dim=forecast_human.shape[0]
+        n+=batch_dim
+        running_loss += loss*batch_dim
+        running_per_joint_error += per_joint_error*batch_dim
+        running_all_joints_error += torch.mean(all_joints_error)*batch_dim
+        running_fde += fde*batch_dim
+        running_cost_forecast += torch.mean(torch.sum(forecast_cost, dim=1))*batch_dim
+        running_cost_future += torch.mean(torch.sum(future_cost, dim=1))*batch_dim
+        running_cost_dif += torch.mean(cost_dif)*batch_dim
+
+    print(f'[{epoch+1}]  {step_type} loss: {round(running_loss.item()/n, 3)}')
+    writer.add_scalar(f'{step_type}/mpjpe', running_all_joints_error.item()/n, epoch)
+    writer.add_scalar(f'{step_type}/loss', running_loss.item()/n, epoch)
+    writer.add_scalar(f'{step_type}/fde', running_fde.item()/n, epoch)
+    writer.add_scalar(f'{step_type}/forecast_cost', running_cost_forecast.item()/n, epoch)
+    writer.add_scalar(f'{step_type}/future_cost', running_cost_future.item()/n, epoch)
+    writer.add_scalar(f'{step_type}/cost_dif', running_cost_dif.item()/n, epoch)
+    for idx, joint in enumerate(['LWristOut', 'RWristOut']):
+        writer.add_scalar(f'{step_type}/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
 
 def train(model, writer, joint_used, joint_names, model_name, joint_weights):
     optimizer=optim.Adam(model.parameters(),lr=1e-4,weight_decay=1e-05)
@@ -46,182 +114,17 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
     model.train()
     for epoch in range(args.n_epochs):
-        model.train()
-        running_loss=0
-        running_all_joints_error=0
-        running_per_joint_error=0
-        running_fde=0
-        running_cost_forecast=0
-        running_cost_future=0
-        running_cost_dif=0
-        n=0
-        for cnt,batch in enumerate(loader_train): 
-            forecast_human, other_human, is_reaching = [b.float().to(device) for b in batch] # multiply by 1000 for milimeters
-            forecast_human_history=forecast_human[:,0:args.input_n,:,:].permute(0,3,1,2)
-            forecast_human_left_hip = forecast_human_history[:, :, args.input_n-1:, 21:22]
-            forecast_human_history_offset = forecast_human_history[:, :, :, joint_used] - forecast_human_left_hip
-            forecast_human_predict_gt=forecast_human[:,args.input_n:args.input_n+args.output_n,joint_used,:]
-
-            optimizer.zero_grad()
-            forecast_human_predict_offset=model(forecast_human_history_offset)
-            forecast_human_predict = forecast_human_predict_offset.permute(0,1,3,2)+forecast_human_left_hip.permute(0,2,3,1)
-            other_human_future = other_human[:, :, joint_used, :]
-
-            forecast_cost = calc_reactive_stirring_task_cost(forecast_human_predict, other_human_future, is_reaching)
-            future_cost = calc_reactive_stirring_task_cost(forecast_human_predict_gt, other_human_future, is_reaching)
-            cost_dif = (torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
-            all_joints_error = weighted_mpjpe_error(forecast_human_predict,forecast_human_predict_gt, joint_weights)*1000
-
-            # import pdb; pdb.set_trace()
-            if args.weight_using == "forecast":
-                loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(forecast_cost, dim=1)))*all_joints_error)
-            elif args.weight_using == "future":
-                loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(future_cost, dim=1)))*all_joints_error)
-            elif args.weight_using == "difference":
-                loss = torch.mean(torch.exp(args.cost_weight*cost_dif)*all_joints_error)
-
-            per_joint_error=perjoint_error(forecast_human_predict,forecast_human_predict_gt)*1000
-            fde=fde_error(forecast_human_predict,forecast_human_predict_gt)*1000    
-            loss.backward()
-            if args.clip_grad is not None:
-                torch.nn.utils.clip_grad_norm_(model.parameters(),args.clip_grad)
-            optimizer.step()
-
-            #### Save all metrics for logging
-            batch_dim=forecast_human.shape[0]
-            n+=batch_dim
-            running_loss += loss*batch_dim
-            running_per_joint_error += per_joint_error*batch_dim
-            running_all_joints_error += torch.mean(all_joints_error)*batch_dim
-            running_fde += fde*batch_dim
-            running_cost_forecast += torch.mean(torch.sum(forecast_cost, dim=1))*batch_dim
-            running_cost_future += torch.mean(torch.sum(future_cost, dim=1))*batch_dim
-            running_cost_dif += torch.mean(cost_dif)*batch_dim
-
-        print('[%d]  training loss: %.3f' %(epoch + 1, running_loss.item()/n))  
-        writer.add_scalar('train/mpjpe', running_all_joints_error.item()/n, epoch)
-        writer.add_scalar('train/loss', running_loss.item()/n, epoch)
-        writer.add_scalar('train/fde', running_fde.item()/n, epoch)
-        writer.add_scalar('train/forecast_cost', running_cost_forecast.item()/n, epoch)
-        writer.add_scalar('train/future_cost', running_cost_future.item()/n, epoch)
-        writer.add_scalar('train/cost_dif', running_cost_dif.item()/n, epoch)
-        for idx, joint in enumerate(['LWristOut', 'RWristOut']):
-            writer.add_scalar(f'train/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
-        
-        model.eval()
-        running_loss=0
-        running_all_joints_error=0
-        running_per_joint_error=0
-        running_fde=0
-        running_cost_forecast=0
-        running_cost_future=0
-        running_cost_dif=0
-        n=0
+        update_step(epoch, model, writer, joint_used, joint_names, joint_weights, 
+                loader_train, optimizer=optimizer, eval=False, step_type='train')     
         with torch.no_grad():
-            for cnt,batch in enumerate(loader_val): 
-                forecast_human, other_human, is_reaching = [b.float().to(device) for b in batch] # multiply by 1000 for milimeters
-                forecast_human_history=forecast_human[:,0:args.input_n,:,:].permute(0,3,1,2)
-                forecast_human_left_hip = forecast_human_history[:, :, args.input_n-1:, 21:22]
-                forecast_human_history_offset = forecast_human_history[:, :, :, joint_used] - forecast_human_left_hip
-                forecast_human_predict_gt=forecast_human[:,args.input_n:args.input_n+args.output_n,joint_used,:]
+            # Validation step
+            update_step(epoch, model, writer, joint_used, joint_names, joint_weights, 
+                    loader_val, optimizer=None, eval=True, step_type='val')
 
-                optimizer.zero_grad()
-                forecast_human_predict_offset=model(forecast_human_history_offset)
-                forecast_human_predict = forecast_human_predict_offset.permute(0,1,3,2)+forecast_human_left_hip.permute(0,2,3,1)
-                other_human_future = other_human[:, :, joint_used, :]
-
-                forecast_cost = calc_reactive_stirring_task_cost(forecast_human_predict, other_human_future, is_reaching)
-                future_cost = calc_reactive_stirring_task_cost(forecast_human_predict_gt, other_human_future, is_reaching)
-                cost_dif = (torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
-                all_joints_error = weighted_mpjpe_error(forecast_human_predict,forecast_human_predict_gt, joint_weights)*1000
-
-                if args.weight_using == "forecast":
-                    loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(forecast_cost, dim=1)))*all_joints_error)
-                elif args.weight_using == "future":
-                    loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(future_cost, dim=1)))*all_joints_error)
-                elif args.weight_using == "difference":
-                    loss = torch.mean(torch.exp(args.cost_weight*cost_dif)*all_joints_error)
-
-                per_joint_error=perjoint_error(forecast_human_predict,forecast_human_predict_gt)*1000
-                fde=fde_error(forecast_human_predict,forecast_human_predict_gt)*1000          
-                #### Save all metrics for logging
-                batch_dim=forecast_human.shape[0]
-                n+=batch_dim
-                running_loss += loss*batch_dim
-                running_per_joint_error += per_joint_error*batch_dim
-                running_all_joints_error += torch.mean(all_joints_error)*batch_dim
-                running_fde += fde*batch_dim
-                running_cost_forecast += torch.mean(torch.sum(forecast_cost, dim=1))*batch_dim
-                running_cost_future += torch.mean(torch.sum(future_cost, dim=1))*batch_dim
-                running_cost_dif += torch.mean(cost_dif)*batch_dim
-
-        print('[%d]  val loss: %.3f' %(epoch + 1, running_loss.item()/n))  
-        writer.add_scalar('val/mpjpe', running_all_joints_error.item()/n, epoch)
-        writer.add_scalar('val/loss', running_loss.item()/n, epoch)
-        writer.add_scalar('val/fde', running_fde.item()/n, epoch)
-        writer.add_scalar('val/forecast_cost', running_cost_forecast.item()/n, epoch)
-        writer.add_scalar('val/future_cost', running_cost_future.item()/n, epoch)
-        writer.add_scalar('val/cost_dif', running_cost_dif.item()/n, epoch)
-        for idx, joint in enumerate(['LWristOut', 'RWristOut']):
-            writer.add_scalar(f'val/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
-        
-        running_loss=0
-        running_all_joints_error=0
-        running_per_joint_error=0
-        running_fde=0
-        running_cost_forecast=0
-        running_cost_future=0
-        running_cost_dif=0
-        n=0
-        with torch.no_grad():
-            for cnt,batch in enumerate(loader_test): 
-                forecast_human, other_human, is_reaching = [b.float().to(device) for b in batch] # multiply by 1000 for milimeters
-                forecast_human_history=forecast_human[:,0:args.input_n,:,:].permute(0,3,1,2)
-                forecast_human_left_hip = forecast_human_history[:, :, args.input_n-1:, 21:22]
-                forecast_human_history_offset = forecast_human_history[:, :, :, joint_used] - forecast_human_left_hip
-                forecast_human_predict_gt=forecast_human[:,args.input_n:args.input_n+args.output_n,joint_used,:]
-
-                optimizer.zero_grad()
-                forecast_human_predict_offset=model(forecast_human_history_offset)
-                forecast_human_predict = forecast_human_predict_offset.permute(0,1,3,2)+forecast_human_left_hip.permute(0,2,3,1)
-                other_human_future = other_human[:, :, joint_used, :]
-
-                forecast_cost = calc_reactive_stirring_task_cost(forecast_human_predict, other_human_future, is_reaching)
-                future_cost = calc_reactive_stirring_task_cost(forecast_human_predict_gt, other_human_future, is_reaching)
-                cost_dif = (torch.sum(torch.abs(forecast_cost-future_cost), dim=1))
-                all_joints_error = weighted_mpjpe_error(forecast_human_predict,forecast_human_predict_gt, joint_weights)*1000
-
-                if args.weight_using == "forecast":
-                    loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(forecast_cost, dim=1)))*all_joints_error)
-                elif args.weight_using == "future":
-                    loss = torch.mean(torch.exp(args.cost_weight*(torch.sum(future_cost, dim=1)))*all_joints_error)
-                elif args.weight_using == "difference":
-                    loss = torch.mean(torch.exp(args.cost_weight*cost_dif)*all_joints_error)
-
-                per_joint_error=perjoint_error(forecast_human_predict,forecast_human_predict_gt)*1000
-                fde=fde_error(forecast_human_predict,forecast_human_predict_gt)*1000          
-
-                #### Save all metrics for logging
-                batch_dim=forecast_human.shape[0]
-                n+=batch_dim
-                running_loss += loss*batch_dim
-                running_per_joint_error += per_joint_error*batch_dim
-                running_all_joints_error += torch.mean(all_joints_error)*batch_dim
-                running_fde += fde*batch_dim
-                running_cost_forecast += torch.mean(torch.sum(forecast_cost, dim=1))*batch_dim
-                running_cost_future += torch.mean(torch.sum(future_cost, dim=1))*batch_dim
-                running_cost_dif += torch.mean(cost_dif)*batch_dim
-
-        print('[%d]  test loss: %.3f' %(epoch + 1, running_loss.item()/n))  
-        writer.add_scalar('test/mpjpe', running_all_joints_error.item()/n, epoch)
-        writer.add_scalar('test/loss', running_loss.item()/n, epoch)
-        writer.add_scalar('test/fde', running_fde.item()/n, epoch)
-        writer.add_scalar('test/forecast_cost', running_cost_forecast.item()/n, epoch)
-        writer.add_scalar('test/future_cost', running_cost_future.item()/n, epoch)
-        writer.add_scalar('test/cost_dif', running_cost_dif.item()/n, epoch)
-        for idx, joint in enumerate(['LWristOut', 'RWristOut']):
-            writer.add_scalar(f'test/{joint}_error', running_per_joint_error[idx+5].item()/n, epoch)
-
+            # Test step
+            update_step(epoch, model, writer, joint_used, joint_names, joint_weights, 
+                    loader_test, optimizer=None, eval=True, step_type='test')
+                    
         print('----saving model-----')
         
         pathlib.Path('./checkpoints/'+args.model_path).mkdir(parents=True, exist_ok=True)

@@ -33,9 +33,7 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
     Dataset = CoMaD('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
     Dataset_val = CoMaD('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
-    Dataset_test = CoMaD('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
-
-    
+    Dataset_test = CoMaD('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2) 
 
 
     loader_train = DataLoader(
@@ -93,7 +91,6 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
                 sequences_predict_gt=batch[:,args.input_n:args.input_n+args.output_n,:,:]
                 optimizer.zero_grad()
                 sequences_predict=model(sequences_train)
-                import pdb; pdb.set_trace()
                 loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
                 # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
                 per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
@@ -114,7 +111,6 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
                 sequences_predict_gt=batch2[:,args.input_n:args.input_n+args.output_n,:,:]
                 optimizer.zero_grad()
                 sequences_predict=model(sequences_train)
-                # import pdb; pdb.set_trace()
                 loss = weighted_mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt, joint_weights)*1000
                 # loss=mpjpe_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000 # the inputs to the loss function must have shape[N,T,V,C]
                 per_joint_error=perjoint_error(sequences_predict.permute(0,1,3,2),sequences_predict_gt)*1000
