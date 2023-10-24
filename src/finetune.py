@@ -204,9 +204,9 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
         print('----saving model-----')
         
-        pathlib.Path('./checkpoints/'+args.model_path).mkdir(parents=True, exist_ok=True)
+        pathlib.Path('./model_checkpoints/'+args.model_path).mkdir(parents=True, exist_ok=True)
         torch.save(model.state_dict(),
-                   os.path.join('./checkpoints/'+args.model_path,f'{epoch}_{model_name}'),
+                   os.path.join('./model_checkpoints/'+args.model_path,f'{epoch}_{model_name}'),
                    )
 
 if __name__ == '__main__':
@@ -222,7 +222,7 @@ if __name__ == '__main__':
                            args.output_n,args.st_gcnn_dropout,args.joints_to_consider,args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to(device)
     model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
 
-    model.load_state_dict(torch.load(f'./checkpoints/{args.load_path}/49_{model_name}'))
+    model.load_state_dict(torch.load(f'./model_checkpoints/{args.load_path}/49_{model_name}'))
     print('total number of parameters of the network is: '+str(sum(p.numel() for p in model.parameters() if p.requires_grad)))
     writer = SummaryWriter(log_dir='./finetune_logs/' + args.model_path)
     train(model, writer, joint_used, joint_names, model_name, joint_weights)

@@ -53,7 +53,7 @@ if __name__ == '__main__':
     model = ManiCast(args.input_dim,args.input_n, args.output_n,args.st_gcnn_dropout,args.joints_to_consider,
                 args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to('cpu')
     model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
-    model.load_state_dict(torch.load(f'./checkpoints/{args.load_path}/{args.model_num}_{model_name}'))
+    model.load_state_dict(torch.load(f'./model_checkpoints/{args.load_path}/{args.model_num}_{model_name}'))
     model.eval()
     episode_file = f"./data/comad_data/{args.activity}_data/test/{args.activity}_{args.ep_num}.json"
     with open(episode_file, 'r') as f:

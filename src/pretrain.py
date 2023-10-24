@@ -99,9 +99,9 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
         print('----saving model-----')
         
-        pathlib.Path('./checkpoints/'+args.model_path).mkdir(parents=True, exist_ok=True)
+        pathlib.Path('./model_checkpoints/'+args.model_path).mkdir(parents=True, exist_ok=True)
         torch.save(model.state_dict(),
-                   os.path.join('./checkpoints/'+args.model_path,f'{epoch}_{model_name}'),
+                   os.path.join('./model_checkpoints/'+args.model_path,f'{epoch}_{model_name}'),
                    )
 
 if __name__ == '__main__':
