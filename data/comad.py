@@ -34,7 +34,7 @@ class CoMaD(Dataset):
 
     def __init__(self,data_dir,input_n,output_n,sample_rate, split=0, mocap_splits=default_splits, names=default_names):
         """
-        data_dir := './mocap_data'
+        data_dir := './comad_data'
         mapping_file := './mapping.json'
         """
         self.data_dir = data_dir
@@ -107,4 +107,4 @@ class CoMaD(Dataset):
 
 
 if __name__ == "__main__":
-    dataset = Datasets('./mocap_data', 10, 25, 25)
+    dataset = Datasets('./comad_data', 10, 25, 25)

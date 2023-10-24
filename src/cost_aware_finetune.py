@@ -89,9 +89,9 @@ def update_step(epoch, model, writer, joint_used, joint_names, joint_weights,
 def train(model, writer, joint_used, joint_names, model_name, joint_weights):
     optimizer=optim.Adam(model.parameters(),lr=1e-4,weight_decay=1e-05)
 
-    Dataset = CostDataset('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
-    Dataset_val = CostDataset('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
-    Dataset_test = CostDataset('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
+    Dataset = CostDataset('./comad_data',args.input_n,args.output_n,sample_rate=25,split=0)
+    Dataset_val = CostDataset('./comad_data',args.input_n,args.output_n,sample_rate=25,split=1)
+    Dataset_test = CostDataset('./comad_data',args.input_n,args.output_n,sample_rate=25,split=2)
 
     loader_train = DataLoader(
         Dataset,

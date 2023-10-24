@@ -35,6 +35,19 @@ def perjoint_error(batch_pred, batch_gt):
     batch_joint_errors = torch.mean(torch.norm(diff,2,3), 1)
     return torch.mean(batch_joint_errors,0)
 
+def perjoint_error_eval(batch_pred, batch_gt):
+    batch_pred = batch_pred.contiguous()
+    batch_gt=batch_gt.contiguous()
+    diff = batch_gt - batch_pred
+    batch_joint_errors = torch.mean(torch.norm(diff,2,3), 1)
+    return torch.mean(batch_joint_errors,0), batch_joint_errors
+
+def perjoint_fde(batch_pred, batch_gt):
+    batch_pred = batch_pred.contiguous()
+    batch_gt=batch_gt.contiguous()
+    diff = batch_gt - batch_pred
+    batch_joint_errors = torch.norm(diff[:, -1],2,2)
+    return torch.mean(batch_joint_errors,0), batch_joint_errors
 
 
 

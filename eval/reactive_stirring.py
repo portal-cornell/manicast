@@ -1,9 +1,6 @@
-# import rospy
 import json
-# from visualization_msgs.msg import MarkerArray, Marker
-# from geometry_msgs.msg import Point
 import numpy as np
-from model import *
+from model.manicast import ManiCast
 import torch
 from utils.parser import args
 mapping_file = "mapping.json"
@@ -18,7 +15,6 @@ def get_relevant_joints(all_joints):
     for joint in relevant_joints:
         pos = all_joints[mapping[joint]]
         relevant_joint_pos.append(pos)
-        # import pdb; pdb.set_trace()
     return relevant_joint_pos
 
 def get_history(all_joints, current_idx, history_length=10, skip_rate = 5):
@@ -45,17 +41,15 @@ def get_forecast(history_joints):
         sequences_predict=model(sequences_train).permute(0,1,3,2)
     current_hips_repeat = current_hips.repeat(1, sequences_predict.shape[1], 1, 1)
     forecast_joints = torch.cat([sequences_predict+current_left_hip, current_hips_repeat], dim=2)
-    # import pdb; pdb.set_trace()
     return forecast_joints[0].cpu().numpy()
-    # pass
 
 if __name__ == '__main__':
-    model = Model(args.input_dim,args.input_n, args.output_n,args.st_gcnn_dropout,args.joints_to_consider,
+    model = ManiCast(args.input_dim,args.input_n, args.output_n,args.st_gcnn_dropout,args.joints_to_consider,
                 args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to('cpu')
     model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
     model.load_state_dict(torch.load(f'./checkpoints/{args.load_path}/{args.model_num}_{model_name}'))
     model.eval()
-    episode_file = f"/home/portal/MHAD_Processing/{args.activity}_data/{args.activity}_{args.ep_num}.json"
+    episode_file = f"./comad_data/{args.activity}_data/test/{args.activity}_{args.ep_num}.json"
     with open(episode_file, 'r') as f:
         data = json.load(f)
     relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',
@@ -123,9 +117,4 @@ if __name__ == '__main__':
                 break
     print(np.mean(np.array(restart_times)))
     print(np.mean(np.array(stop_times)))
-# print("Future reaction times = ", np.array(future_reaction_times)- np.array(current_reaction_times))
-# print("Current reaction times = ", current_reaction_times)
-# print("Forecast reaction times = ", np.array(forecast_reaction_times) - np.array(current_reaction_times))
 
-
-# import pdb; pdb.set_trace()

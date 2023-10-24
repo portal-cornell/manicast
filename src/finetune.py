@@ -27,13 +27,13 @@ def train(model, writer, joint_used, joint_names, model_name, joint_weights):
 
     optimizer=optim.Adam(model.parameters(),lr=args.lr_ft,weight_decay=1e-05)
 
-    Dataset_transitions_train = CoMaDTransitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
-    Dataset_transitions_val = CoMaDTransitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
-    Dataset_transitions_test = CoMaDTransitions('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2)
+    Dataset_transitions_train = CoMaDTransitions('./comad_data',args.input_n,args.output_n,sample_rate=25,split=0)
+    Dataset_transitions_val = CoMaDTransitions('./comad_data',args.input_n,args.output_n,sample_rate=25,split=1)
+    Dataset_transitions_test = CoMaDTransitions('./comad_data',args.input_n,args.output_n,sample_rate=25,split=2)
 
-    Dataset = CoMaD('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=0)
-    Dataset_val = CoMaD('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=1)
-    Dataset_test = CoMaD('./mocap_data',args.input_n,args.output_n,sample_rate=25,split=2) 
+    Dataset = CoMaD('./comad_data',args.input_n,args.output_n,sample_rate=25,split=0)
+    Dataset_val = CoMaD('./comad_data',args.input_n,args.output_n,sample_rate=25,split=1)
+    Dataset_test = CoMaD('./comad_data',args.input_n,args.output_n,sample_rate=25,split=2) 
 
 
     loader_train = DataLoader(

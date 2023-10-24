@@ -59,6 +59,9 @@ parser.add_argument('--model_num',type=int,default=49,help= 'directory with the 
 parser.add_argument('--threshold',type=float,default=0.4,help= 'directory with the models checkpoints ')
 parser.add_argument('--stream_person',type=str,default="Kushal",help= 'directory with the models checkpoints ')
 parser.add_argument('--weight_using',type=str,default="forecast",help= 'directory with the models checkpoints ')
+parser.add_argument('--prediction_method',type=str,default="neural",help= 'directory with the models checkpoints ')
+parser.add_argument('--start_frame',type=int,default=0,help= 'directory with the models checkpoints ')
+parser.add_argument('--end_frame',type=int,default=50,help= 'directory with the models checkpoints ')
 
 #FLAGS FOR THE VISUALIZATION
 
