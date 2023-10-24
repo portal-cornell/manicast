@@ -6,7 +6,7 @@ import torch.optim as optim
 from model.manicast import ManiCast
 from utils.ang2joint import *
 from utils.loss_funcs import mpjpe_error, fde_error, weighted_mpjpe_error, perjoint_error
-from data.amass import *
+from data.utils.amass import *
 from utils.parser import args
 from torch.utils.tensorboard import SummaryWriter
 import pathlib

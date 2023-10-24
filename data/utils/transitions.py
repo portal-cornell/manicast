@@ -33,7 +33,7 @@ def convert_time_to_frame(time, hz, offset):
 class CoMaDTransitions(Dataset):
     def __init__(self, data_dir,input_n,output_n,sample_rate, split=0, mocap_splits=splits):
         """
-        data_dir := './comad_data'
+        data_dir := './data/comad_data'
         mapping_file := './mapping.json'
         """
         self.data_dir = data_dir

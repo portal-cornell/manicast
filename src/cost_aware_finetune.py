@@ -7,8 +7,8 @@ from model.manicast import ManiCast
 from utils.ang2joint import *
 from utils.loss_funcs import mpjpe_error, fde_error, weighted_mpjpe_error, perjoint_error
 from utils.parser import args
-from data.costs import *
-from data.transitions import *
+from data.utils.costs import *
+from data.utils.transitions import *
 from utils.cost_funcs import calc_reactive_stirring_task_cost
 from utils.read_json_data import read_json
 from torch.utils.tensorboard import SummaryWriter
@@ -89,9 +89,9 @@ def update_step(epoch, model, writer, joint_used, joint_names, joint_weights,
 def train(model, writer, joint_used, joint_names, model_name, joint_weights):
     optimizer=optim.Adam(model.parameters(),lr=1e-4,weight_decay=1e-05)
 
-    Dataset = CostDataset('./comad_data',args.input_n,args.output_n,sample_rate=25,split=0)
-    Dataset_val = CostDataset('./comad_data',args.input_n,args.output_n,sample_rate=25,split=1)
-    Dataset_test = CostDataset('./comad_data',args.input_n,args.output_n,sample_rate=25,split=2)
+    Dataset = CostDataset('./data/comad_data',args.input_n,args.output_n,sample_rate=25,split=0)
+    Dataset_val = CostDataset('./data/comad_data',args.input_n,args.output_n,sample_rate=25,split=1)
+    Dataset_test = CostDataset('./data/comad_data',args.input_n,args.output_n,sample_rate=25,split=2)
 
     loader_train = DataLoader(
         Dataset,

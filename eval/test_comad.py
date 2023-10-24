@@ -6,9 +6,9 @@ import torch
 from torch.utils.data import DataLoader
 from utils.ang2joint import *
 from utils.loss_funcs import mpjpe_error, fde_error, weighted_mpjpe_error, perjoint_error_eval, perjoint_fde
-from data.amass import *
-from data.comad import *
-from data.transitions import *
+from data.utils.amass import *
+from data.utils.comad import *
+from data.utils.transitions import *
 from utils.parser import args
 
 mapping_file = "mapping.json"
@@ -37,14 +37,14 @@ if __name__ == '__main__':
         
         joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints[:-2]])
         
-        Dataset_test = CoMaD('./comad_data',args.input_n,args.output_n,sample_rate=25,split=2)
+        Dataset_test = CoMaD('./data/comad_data',args.input_n,args.output_n,sample_rate=25,split=2)
         loader_test = DataLoader(
             Dataset_test,
             batch_size=args.batch_size,
             shuffle =False,
             num_workers=0)
         
-        Dataset_transitions_test = CoMaDTransitions('./comad_data',args.input_n,args.output_n,sample_rate=25,split=2)
+        Dataset_transitions_test = CoMaDTransitions('./data/comad_data',args.input_n,args.output_n,sample_rate=25,split=2)
         loader_transition_test = DataLoader(
             Dataset_transitions_test,
             batch_size=len(Dataset_transitions_test)//len(loader_test),
