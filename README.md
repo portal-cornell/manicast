@@ -73,34 +73,16 @@ python eval/test_comad.py
 ```
 
 ### Results
-<h3>Reactive Stirring</h3>
-<video height="400px";
-frameBorder="1"; 
-controls="controls";>
-    <source src="./docs/Stirring_Manicast.mp4" type="video/mp4"></source>
-</video>
-
-<h3>Collaborative Table Setting</h3>
-<video height="450px";
-frameBorder="1"; 
-controls="controls";>
-    <source src="./docs/Tabletop_ManiCast.mp4" type="video/mp4"></source>
-</video>
-
-<h3>Object Handover</h3>
-<video height="500px";
-frameBorder="1"; 
-controls="controls";>
-    <source src="./docs/Handover_Manicast.mp4" type="video/mp4"></source>
-</video>
-<!-- <table border="0">
+<table border="0">
  <tr align="center">
-    <td><img src="docs/SAFE.gif" alt>
-    <em>Safe Planning with Adversarial Forecasts</em></td>
-    <td><img src="docs/MLE.gif" alt>
-    <em>Collision with MLE Forecasting and Planning</em></td>
+    <td><img src="docs/Stirring_Manicast.gif" alt>
+    <em>Reactive Stirring</em></td>
+    <td><img src="docs/Handover_Manicast.gif" alt>
+    <em>Object Handover</em></td>
+    <td><img src="docs/Tabletop_Manicast.gif" alt>
+    <em>Collaborative Table Setting</em></td>
  </tr>
-</table> -->
+</table>
 
 <!-- ### Work in Progress -->
 
