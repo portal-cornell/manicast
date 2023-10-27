@@ -49,7 +49,7 @@ if __name__ == '__main__':
     model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
     model.load_state_dict(torch.load(f'./model_checkpoints/{args.load_path}/{args.model_num}_{model_name}'))
     model.eval()
-    episode_file = f"./data/comad_data/{args.activity}_data/test/{args.activity}_{args.ep_num}.json"
+    episode_file = f"./data/comad_data/{'stirring_reaction'}_data/test/{'stirring_reaction'}_{args.ep_num}.json"
     with open(episode_file, 'r') as f:
         data = json.load(f)
     relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',

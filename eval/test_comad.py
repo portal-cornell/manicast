@@ -15,7 +15,7 @@ mapping_file = "mapping.json"
 with open(mapping_file, 'r') as f:
     mapping = json.load(f)       
 
-models = ["pretrained_unweighted"]
+models = ["BASE", "MANICAST", "MANICAST-W"]
 
 model_results_dict = {}
 if __name__ == '__main__':
