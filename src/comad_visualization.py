@@ -2,40 +2,17 @@ import json
 import numpy as np
 import argparse
 import os
-# import torch
 from matplotlib import pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-
-
+from model.manicast import ManiCast
+import torch
+from utils.parser import args
 relevant_joints=['BackTop', 'LShoulderBack', 'RShoulderBack',
-                        'LElbowOut', 'RElbowOut', 'WaistLBack', 
-                        'WaistRBack', 'LHandOut', 'RHandOut']
+                'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']
+model = ManiCast(args.input_dim,args.input_n, args.output_n,args.st_gcnn_dropout,args.joints_to_consider,
+                args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to('cpu')
 
-#How to ask for model paths
-# model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/mocap_new/amass_3d_25frames_ckpt'
-# model_path = '/home/portal/Human_Motion_Forecasting/checkpoints/finetune_5_1e-03/amass_3d_25frames_ckpt'
-
-# input_dim = 3
-# input_n = 10
-# output_n = 25
-# st_gcnn_dropout = 0.1
-# joints_to_consider = 7
-# n_tcnn_layers = 4
-# tcnn_kernel_size = [3,3]
-# tcnn_dropout = 0.0
-
-# model = Model(input_dim, input_n, output_n,st_gcnn_dropout, joints_to_consider,
-#               n_tcnn_layers, tcnn_kernel_size, tcnn_dropout).to('cpu')
-# model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-# # print(model.eval())
-# model.eval()
-
-# GET manicast model
-
-# marginal_model = get_model(ONE_HIST=True, CONDITIONAL=False, bob_hand=False)
-# conditional_model = get_model(ONE_HIST=False, CONDITIONAL=True, bob_hand=False)
-# model_joints_idx = [0,1,2,3,4,5,6,9,10]
+model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
 
 def get_history(joint_data, current_idx, history_length, skip_rate = int(120/15)):
     history_joints = []
@@ -65,18 +42,18 @@ def get_future(all_joints, current_idx, future_length=25, skip_rate = 5):
         future_joints.append(get_relevant_joints(all_joints[idx]))
     return future_joints
 
-# def get_forecast(history_joints):
-#     history_joints = torch.Tensor(np.array(history_joints)).unsqueeze(0)
-#     current_left_hip = history_joints[:,-2:-1,-2:-1,:]
-#     current_hips = history_joints[:,-2:-1,-2:,:]
-#     history_joints = history_joints - current_left_hip
-#     sequences_train=history_joints[:,:,:-2].permute(0,3,1,2)
-#     with torch.no_grad():
-#         sequences_predict=model(sequences_train).permute(0,1,3,2)
-#     current_hips_repeat = current_hips.repeat(1, sequences_predict.shape[1], 1, 1)
-#     forecast_joints = torch.cat([sequences_predict+current_left_hip, current_hips_repeat], dim=2)
-#     # import pdb; pdb.set_trace()
-#     return forecast_joints[0].cpu().numpy()
+def get_forecast(history_joints):
+    history_joints = torch.Tensor(np.array(history_joints)).unsqueeze(0)
+    current_left_hip = history_joints[:,-2:-1,-2:-1,:]
+    current_hips = history_joints[:,-2:-1,-2:,:]
+    history_joints = history_joints - current_left_hip
+    sequences_train=history_joints[:,:,:-2].permute(0,3,1,2)
+    with torch.no_grad():
+        sequences_predict=model(sequences_train).permute(0,1,3,2)
+    current_hips_repeat = current_hips.repeat(1, sequences_predict.shape[1], 1, 1)
+    forecast_joints = torch.cat([sequences_predict+current_left_hip, current_hips_repeat], dim=2)
+    # import pdb; pdb.set_trace()
+    return forecast_joints[0].cpu().numpy()
 
 
 def get_point_array(current_joints, future_joints, forecast_joints, figure):
@@ -122,14 +99,8 @@ def get_point_array(current_joints, future_joints, forecast_joints, figure):
 
 
 if __name__ == '__main__':
-
-    # parser = argparse.ArgumentParser(description='Arguments for running the scripts')
-    # parser.add_argument('--dataset',type=str,default="mixing",help="Dataset Type")
-    # parser.add_argument('--set_num',type=str,default="0",help="Number of Dataset")
-    # parser.add_argument('--ep_num', type=str,default="-1",help="Episode to watch/leave blank if wanting to watch whole set")
-
-    # args = parser.parse_args()
-
+    model.load_state_dict(torch.load(f'./model_checkpoints/{args.load_path}'))
+    model.eval()
 
     dataset_folder = f"./data/comad_data/"
     mapping_file = "./mapping.json"
@@ -158,16 +129,17 @@ if __name__ == '__main__':
         print(round(timestep/120, 1))
         joint_data_A = person_data["Kushal"]
         current_joints = get_relevant_joints(joint_data_A[timestep])
-        
         history_joints = get_history(joint_data_A, timestep)
         future_joints = get_future(joint_data_A, timestep)
-        # forecast_joints = get_forecast(history_joints)
+        forecast_joints = get_forecast(history_joints)
         if (timestep % 120) % 5 == 0:
             plt.cla()
             ax.set_xlim3d([0, 1])
             ax.set_ylim3d([0, 1])
             ax.set_zlim3d([1.2,2.2])
-            get_point_array(current_joints=current_joints, future_joints=future_joints, forecast_joints=None, figure=ax)
+            get_point_array(current_joints=current_joints, 
+                            future_joints=future_joints, 
+                            forecast_joints=forecast_joints, figure=ax)
             plt.title(str(round(timestep/120, 1)),y=-0.1)
         plt.pause(.001)
         if timestep/120 >= 10:
