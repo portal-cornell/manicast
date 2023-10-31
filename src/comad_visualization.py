@@ -59,7 +59,7 @@ def get_forecast(history_joints):
     return forecast_joints[0].cpu().numpy()
 
 
-def get_point_array(current_joints, future_joints, forecast_joints, figures, ax, update):
+def get_point_array(current_joints, future_joints, forecast_joints, figures, ax, update, prev, threshold):
     edges = [
             (0, 1), (0, 2),
             (1, 3), (3, 5),
@@ -79,11 +79,16 @@ def get_point_array(current_joints, future_joints, forecast_joints, figures, ax,
                 figures[0][0].append(ax.plot(x, z, y, zdir='z', c = 'black', alpha = 1))
                 figures[0][1].append(ax.scatter(x, z, y, s = 10, c = 'black', alpha = 1))
             else:
+                difference_1 = np.array([(prev[0][idx][0] - x)[0], (prev[0][idx][1] - y)[0], (prev[0][idx][1] - z)[0]])
+                difference_2 = np.array([(prev[0][idx][0] - x)[1], (prev[0][idx][1] - y)[1], (prev[0][idx][1] - z)[1]])
+                if np.linalg.norm(difference_1) > threshold or np.linalg.norm(difference_2) > threshold:
+                    x, y, z = prev[0][idx]
                 figures[0][0][idx][0].set_xdata(x)
                 figures[0][0][idx][0].set_ydata(z)
                 figures[0][0][idx][0].set_3d_properties(y)
 
                 figures[0][1][idx]._offsets3d = (x, z, y)
+            prev[0].append((x, y, z))
     if forecast_joints is not None or future_joints is not None:
         for i, time in enumerate([24]):
             for idx, edge in enumerate(edges + extra_edges):
@@ -99,11 +104,17 @@ def get_point_array(current_joints, future_joints, forecast_joints, figures, ax,
                         figures[1][0].append(ax.plot(x, z, y, zdir='z', c = 'blue', alpha = 0.9-0.1*((time+1)/25)))
                         figures[1][1].append(ax.scatter(x, z, y, s = 10, c = 'blue', alpha = 0.9-0.1*((time+1)/25)))
                     else:
+                        difference_1 = np.array([(prev[1][idx][0] - x)[0], (prev[1][idx][1] - y)[0], (prev[1][idx][1] - z)[0]])
+                        difference_2 = np.array([(prev[1][idx][0] - x)[1], (prev[1][idx][1] - y)[1], (prev[1][idx][1] - z)[1]])
+                        if np.linalg.norm(difference_1) > threshold or np.linalg.norm(difference_2) > threshold:
+                            x, y, z = prev[1][idx]
+                    
                         figures[1][0][idx][0].set_xdata(x)
                         figures[1][0][idx][0].set_ydata(z)
                         figures[1][0][idx][0].set_3d_properties(y)
 
-                    figures[1][1][idx]._offsets3d = (x, z, y)
+                        figures[1][1][idx]._offsets3d = (x, z, y)
+                    prev[1].append((x, y, z))
                 if future_joints is not None:
                     joints = future_joints[time]
                     pos1, pos2 = joints[edge[0]], joints[edge[1]]
@@ -116,11 +127,16 @@ def get_point_array(current_joints, future_joints, forecast_joints, figures, ax,
                         figures[2][0].append(ax.plot(x, z, y, zdir='z', c = 'green', alpha = 0.9-0.1*((time+1)/25)))
                         figures[2][1].append(ax.scatter(x, z, y, s = 10, c = 'green', alpha = 0.9-0.1*((time+1)/25)))
                     else:
+                        difference_1 = np.array([(prev[2][idx][0] - x)[0], (prev[2][idx][1] - y)[0], (prev[2][idx][1] - z)[0]])
+                        difference_2 = np.array([(prev[2][idx][0] - x)[1], (prev[2][idx][1] - y)[1], (prev[2][idx][1] - z)[1]])
+                        if np.linalg.norm(difference_1) > threshold or np.linalg.norm(difference_2) > threshold:
+                            x, y, z = prev[2][idx]
                         figures[2][0][idx][0].set_xdata(x)
                         figures[2][0][idx][0].set_ydata(z)
                         figures[2][0][idx][0].set_3d_properties(y)
 
                         figures[2][1][idx]._offsets3d = (x, z, y)
+                    prev[2].append((x, y, z))
 
 
 if __name__ == '__main__':
@@ -137,6 +153,8 @@ if __name__ == '__main__':
     person_data = {}
     fig = plt.figure(figsize=(10,4.5))
     ax = fig.add_subplot(projection='3d')
+    prev_A = [[],[],[]]
+    prev_B = [[],[],[]]
     figures_A = [[[],[]],[[],[]],[[],[]]]   
     figures_B = [[[],[]],[[],[]],[[],[]]]   
     plt.ion()
@@ -157,7 +175,7 @@ if __name__ == '__main__':
     ax.set_xlim3d([0, 1])
     ax.set_ylim3d([0, 1])
     ax.set_zlim3d([1.2,2.2]) 
-    for timestep in range(0, len(data[list(data.keys())[0]]), 10):
+    for timestep in range(0, len(data[list(data.keys())[0]]), 5):
         print(round(timestep/120, 1))
         joint_data_A = person_data["Kushal"]
         joint_data_B = person_data["Prithwish"]
@@ -174,11 +192,11 @@ if __name__ == '__main__':
         if timestep == 0:
             update = False
         get_point_array(current_joints=current_joints_A, 
-                        future_joints=future_joints_A, 
-                        forecast_joints=forecast_joints_A, figures=figures_A, ax=ax, update=update)
+                        future_joints=None, 
+                        forecast_joints=forecast_joints_A, figures=figures_A, ax=ax, update=update, prev=prev_A, threshold=100)
         get_point_array(current_joints=current_joints_B, 
-                        future_joints=future_joints_B, 
-                        forecast_joints=forecast_joints_B, figures=figures_B, ax=ax, update=update)
+                        future_joints=None, 
+                        forecast_joints=forecast_joints_B, figures=figures_B, ax=ax, update=update, prev=prev_B, threshold=.8)
         plt.title(str(round(timestep/120, 1)),y=-0.1)
         plt.pause(.0001)
         # if timestep/120 >= 3:
