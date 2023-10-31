@@ -7,6 +7,9 @@ import numpy as np
 from model.manicast import ManiCast
 import torch
 from utils.parser import args
+
+
+
 relevant_joints=['BackTop', 'LShoulderBack', 'RShoulderBack',
                 'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']
 model = ManiCast(args.input_dim,args.input_n, args.output_n,args.st_gcnn_dropout,args.joints_to_consider,
@@ -56,7 +59,7 @@ def get_forecast(history_joints):
     return forecast_joints[0].cpu().numpy()
 
 
-def get_point_array(current_joints, future_joints, forecast_joints, figure):
+def get_point_array(current_joints, future_joints, forecast_joints, figures, ax, update):
     edges = [
             (0, 1), (0, 2),
             (1, 3), (3, 5),
@@ -69,33 +72,55 @@ def get_point_array(current_joints, future_joints, forecast_joints, figure):
             pos1, pos2 = current_joints[edge[0]], current_joints[edge[1]]
             x1,y1,z1= pos1.tolist()
             x2,y2,z2 = pos2.tolist()
-            x = [-x1, -x2]
-            y = [y1, y2]
-            z = [z1, z2]
-            figure.plot(x, z, y, zdir='z', c = 'blue', alpha = 1)
-    if forecast_joints is not None:
-        for i, time in enumerate([24]):
-            for idx, edge in enumerate(edges + extra_edges):
-                joints = forecast_joints[time]
-                pos1, pos2 = joints[edge[0]], joints[edge[1]]
-                x1,y1,z1= pos1.tolist()
-                x2,y2,z2 = pos2.tolist()
-                x = [-x1, -x2]
-                y = [y1, y2]
-                z = [z1, z2]
-                figure.plot(x, z, y, zdir='z', c = 'green', alpha = 0.4-0.1*((time+1)/25))
-    if future_joints is not None:
-        for i, time in enumerate([24]):
-            for idx, edge in enumerate(edges + extra_edges):
-                joints = future_joints[time]
-                pos1, pos2 = joints[edge[0]], joints[edge[1]]
-                x1,y1,z1= pos1.tolist()
-                x2,y2,z2 = pos2.tolist()
-                x = [-x1, -x2]
-                y = [y1, y2]
-                z = [z1, z2]
-                figure.plot(x, z, y, zdir='z', c = 'yellow', alpha = 0.9-0.1*((time+1)/25))
+            x = np.array([-x1, -x2])
+            y = np.array([y1, y2])
+            z = np.array([z1, z2])
+            if not update:
+                figures[0][0].append(ax.plot(x, z, y, zdir='z', c = 'black', alpha = 1))
+                figures[0][1].append(ax.scatter(x, z, y, s = 10, c = 'black', alpha = 1))
+            else:
+                figures[0][0][idx][0].set_xdata(x)
+                figures[0][0][idx][0].set_ydata(z)
+                figures[0][0][idx][0].set_3d_properties(y)
 
+                figures[0][1][idx]._offsets3d = (x, z, y)
+    if forecast_joints is not None or future_joints is not None:
+        for i, time in enumerate([24]):
+            for idx, edge in enumerate(edges + extra_edges):
+                if forecast_joints is not None:
+                    joints = forecast_joints[time]
+                    pos1, pos2 = joints[edge[0]], joints[edge[1]]
+                    x1,y1,z1= pos1.tolist()
+                    x2,y2,z2 = pos2.tolist()
+                    x = np.array([-x1, -x2])
+                    y = np.array([y1, y2])
+                    z = np.array([z1, z2])
+                    if not update:
+                        figures[1][0].append(ax.plot(x, z, y, zdir='z', c = 'blue', alpha = 0.9-0.1*((time+1)/25)))
+                        figures[1][1].append(ax.scatter(x, z, y, s = 10, c = 'blue', alpha = 0.9-0.1*((time+1)/25)))
+                    else:
+                        figures[1][0][idx][0].set_xdata(x)
+                        figures[1][0][idx][0].set_ydata(z)
+                        figures[1][0][idx][0].set_3d_properties(y)
+
+                    figures[1][1][idx]._offsets3d = (x, z, y)
+                if future_joints is not None:
+                    joints = future_joints[time]
+                    pos1, pos2 = joints[edge[0]], joints[edge[1]]
+                    x1,y1,z1= pos1.tolist()
+                    x2,y2,z2 = pos2.tolist()
+                    x = np.array([-x1, -x2])
+                    y = np.array([y1, y2])
+                    z = np.array([z1, z2])
+                    if not update:
+                        figures[2][0].append(ax.plot(x, z, y, zdir='z', c = 'green', alpha = 0.9-0.1*((time+1)/25)))
+                        figures[2][1].append(ax.scatter(x, z, y, s = 10, c = 'green', alpha = 0.9-0.1*((time+1)/25)))
+                    else:
+                        figures[2][0][idx][0].set_xdata(x)
+                        figures[2][0][idx][0].set_ydata(z)
+                        figures[2][0][idx][0].set_3d_properties(y)
+
+                        figures[2][1][idx]._offsets3d = (x, z, y)
 
 
 if __name__ == '__main__':
@@ -112,38 +137,52 @@ if __name__ == '__main__':
     person_data = {}
     fig = plt.figure(figsize=(10,4.5))
     ax = fig.add_subplot(projection='3d')
+    figures_A = [[[],[]],[[],[]],[[],[]]]   
+    figures_B = [[[],[]],[[],[]],[[],[]]]   
     plt.ion()
             
-
+    
     p_x=np.linspace(-10,10,15)
     p_y=np.linspace(-10,10,15)
     X,Y=np.meshgrid(p_x,p_y)
+
     # if args.ep_num != "-1":
-    # episode_file = f"{dataset_folder}/{args.dataset}_{args.set_num}_{args.ep_num}.json"
+    #     episode_file = f"{dataset_folder}/{args.dataset}_{args.set_num}_{args.ep_num}.json"
     episode_file = "./data/comad_data/chopping_mixing_data/train/chopping_mixing_4.json"
     with open(episode_file, 'r') as f:
         data = json.load(f)
     for stream_person in data:
         person_data[stream_person] = np.array(data[stream_person])
-    for timestep in range(len(data[list(data.keys())[0]])):
+    
+    ax.set_xlim3d([0, 1])
+    ax.set_ylim3d([0, 1])
+    ax.set_zlim3d([1.2,2.2]) 
+    for timestep in range(0, len(data[list(data.keys())[0]]), 10):
         print(round(timestep/120, 1))
         joint_data_A = person_data["Kushal"]
-        current_joints = get_relevant_joints(joint_data_A[timestep])
-        history_joints = get_history(joint_data_A, timestep)
-        future_joints = get_future(joint_data_A, timestep)
-        forecast_joints = get_forecast(history_joints)
-        if (timestep % 120) % 5 == 0:
-            plt.cla()
-            ax.set_xlim3d([0, 1])
-            ax.set_ylim3d([0, 1])
-            ax.set_zlim3d([1.2,2.2])
-            get_point_array(current_joints=current_joints, 
-                            future_joints=future_joints, 
-                            forecast_joints=forecast_joints, figure=ax)
-            plt.title(str(round(timestep/120, 1)),y=-0.1)
-        plt.pause(.001)
-        if timestep/120 >= 10:
-            break
+        joint_data_B = person_data["Prithwish"]
+        current_joints_A = get_relevant_joints(joint_data_A[timestep])
+        history_joints_A = get_history(joint_data_A, timestep)
+        future_joints_A = get_future(joint_data_A, timestep)
+        forecast_joints_A = get_forecast(history_joints_A)
+        current_joints_B = get_relevant_joints(joint_data_B[timestep])
+        history_joints_B = get_history(joint_data_B, timestep)
+        future_joints_B = get_future(joint_data_B, timestep)
+        forecast_joints_B = get_forecast(history_joints_B)
+
+        update = True
+        if timestep == 0:
+            update = False
+        get_point_array(current_joints=current_joints_A, 
+                        future_joints=future_joints_A, 
+                        forecast_joints=forecast_joints_A, figures=figures_A, ax=ax, update=update)
+        get_point_array(current_joints=current_joints_B, 
+                        future_joints=future_joints_B, 
+                        forecast_joints=forecast_joints_B, figures=figures_B, ax=ax, update=update)
+        plt.title(str(round(timestep/120, 1)),y=-0.1)
+        plt.pause(.0001)
+        # if timestep/120 >= 3:
+        #     break
         
     plt.ioff()
     plt.show()
