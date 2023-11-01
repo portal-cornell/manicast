@@ -6,22 +6,19 @@ import numpy as np
 
 splits = [
             [
-                'chopping_mixing_data/train',
-                'chopping_stirring_data/train',
-                'stirring_reaction_data/train',
-                'table_setting_data/train',
+                'handover/train',
+                'reactive_stirring/train',
+                'table_setting/train',
             ],
             [
-                'chopping_mixing_data/val',
-                'chopping_stirring_data/val',
-                'stirring_reaction_data/val',
-                'table_setting_data/val',
+                'handover/val',
+                'reactive_stirring/val',
+                'table_setting/val',
             ],
             [
-                'chopping_mixing_data/test',
-                'chopping_stirring_data/test',
-                'stirring_reaction_data/test',
-                'table_setting_data/test',
+                'handover/test',
+                'reactive_stirring/test',
+                'table_setting/test',
             ],
         ]
 
@@ -44,9 +41,8 @@ class CoMaDTransitions(Dataset):
         self.data_lst = []
         sequence_len = input_n + output_n
         self.timestamps = {
-            f'{self.data_dir}/stirring_reaction_data': read_json(f'{self.data_dir}/stirring_reaction_data/stirring_reaction_transitions.json'),
-            f'{self.data_dir}/chopping_mixing_data': read_json(f'{self.data_dir}/chopping_mixing_data/chopping_mixing_transitions.json'),
-            f'{self.data_dir}/chopping_stirring_data': read_json(f'{self.data_dir}/chopping_stirring_data/chopping_stirring_transitions.json')
+            f'{self.data_dir}/reactive_stirring': read_json(f'{self.data_dir}/reactive_stirring/reactive_stirring_transitions.json'),
+            f'{self.data_dir}/handover': read_json(f'{self.data_dir}/handover/handover_transitions.json')
         }
         joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',
                       'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut']
@@ -55,12 +51,12 @@ class CoMaDTransitions(Dataset):
         
 
         ignore_data = {
-            "Prithwish":['chopping_mixing_0.json',
-                         'chopping_mixing_2.json',
-                         'chopping_mixing_4.json',
-                         'chopping_mixing_5.json',
-                         'chopping_mixing_8.json',
-                         'chopping_stirring_0.json'],
+            "Prithwish":['handover_0.json',
+                         'handover_2.json',
+                         'handover_4.json',
+                         'handover_5.json',
+                         'handover_8.json',
+                         'handover_9.json'],
             "Kushal":[]
         }
 

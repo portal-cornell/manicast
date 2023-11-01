@@ -1,6 +1,5 @@
 datasets*
 __pycache__*
 checkpoints*
-*ipynb
 *logs*
 finalized_checkpoints*

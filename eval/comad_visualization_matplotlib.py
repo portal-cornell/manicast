@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
     # if args.ep_num != "-1":
     #     episode_file = f"{dataset_folder}/{args.dataset}_{args.set_num}_{args.ep_num}.json"
-    episode_file = "./data/comad_data/chopping_mixing_data/train/chopping_mixing_4.json"
+    episode_file = "./data/comad_data/handover/train/handover_4.json"
     with open(episode_file, 'r') as f:
         data = json.load(f)
     for stream_person in data:
