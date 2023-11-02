@@ -8,6 +8,11 @@ pip install -r requirements.txt
 export PYTHONPATH=$(pwd) // path to parent directory
 ```
 
+### Datasets
+
+Install [AMASS](https://amass.is.tue.mpg.de/) from their official website and save it to the `./datasets` directory.
+
+CoMaD data is already included under the `./data/comad_data` directory.
 
 ### Repo Structure
 ```
@@ -25,9 +30,11 @@ export PYTHONPATH=$(pwd) // path to parent directory
 |   	├── ... 
 |
 ├── datasets
-│   ├── amass                  <- AMASS Dataset
-|   	├── ACCAD 
-|   	├── ...
+│   ├── amass
+|     ├── ACCAD
+|     ├── BioMotionLab_NTroje
+|     ├── CMU
+|     ├── ...
 |
 ├── src
 │   ├── pretrain.py            <- Pretrain script
@@ -46,5 +53,4 @@ export PYTHONPATH=$(pwd) // path to parent directory
 │   ├── test_comad.py          <- CoMaD Forecasting evaluation script
 │
 |
-env
 ```
