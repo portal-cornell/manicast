@@ -7,22 +7,19 @@ from utils.read_json_data import read_json, get_pose_history, missing_data
 
 default_splits = [
             [
-                # 'chopping_mixing_data/train',
-                # 'chopping_stirring_data/train',
-                'stirring_reaction_data/train',
-                # 'table_setting_data/train',
+                # 'handover/train',
+                'reactive_stirring/train',
+                # 'table_setting/train',
             ],
             [
-                # 'chopping_mixing_data/val',
-                # 'chopping_stirring_data/val',
-                'stirring_reaction_data/val',
-                # 'table_setting_data/val',
+                # 'handover/val',
+                'reactive_stirring/val',
+                # 'table_setting/val',
             ],
             [
-                # 'chopping_mixing_data/test',
-                # 'chopping_stirring_data/test',
-                'stirring_reaction_data/test',
-                # 'table_setting_data/test',
+                # 'handover/test',
+                'reactive_stirring/test',
+                # 'table_setting/test',
             ],
         ]
 
@@ -50,17 +47,17 @@ class CostDataset(Dataset):
                       'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack']
         mapping = read_json('./mapping.json')
         joint_used = np.array([mapping[joint_name] for joint_name in joint_names])
-        stirring_react_metadata = read_json(f'{self.data_dir}/stirring_reaction_data/stirring_reaction_metadata.json')
+        stirring_react_metadata = read_json(f'{self.data_dir}/reactive_stirring/reactive_stirring_metadata.json')
 
         ignore_data = {
-            "Prithwish":['chopping_mixing_0.json',
-                         'chopping_mixing_2.json',
-                         'chopping_mixing_4.json',
-                         'chopping_mixing_5.json',
-                         'chopping_mixing_8.json',
-                         'chopping_stirring_0.json',
-                         'chopping_stirring_12.json',
-                         'chopping_stirring_14.json'],
+            "Prithwish":['handover_0.json',
+                         'handover_2.json',
+                         'handover_4.json',
+                         'handover_5.json',
+                         'handover_8.json',
+                         'reactive_stirring_0.json',
+                         'reactive_stirring_12.json',
+                         'reactive_stirring_14.json'],
             "Kushal":['table_setting_4.json',
                       'table_setting_5.json',
                       'table_setting_6.json',

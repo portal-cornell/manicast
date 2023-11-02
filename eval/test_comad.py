@@ -15,7 +15,7 @@ mapping_file = "mapping.json"
 with open(mapping_file, 'r') as f:
     mapping = json.load(f)       
 
-models = ["BASE", "MANICAST", "MANICAST-W"]
+models = ["base", "manicast", "manicastW"]
 
 model_results_dict = {}
 if __name__ == '__main__':
@@ -25,11 +25,11 @@ if __name__ == '__main__':
                     args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to('cpu')
         model_name='amass_3d_'+str(args.output_n)+'frames_ckpt'
         if model_path == "current" or model_path == "cvm":
-            model.load_state_dict(torch.load(f'./model_checkpoints/SCRATCH/{args.model_num}_{model_name}'))
+            model.load_state_dict(torch.load(f'./model_checkpoints/scratch'))
             args.prediction_method = model_path
         else:
             args.prediction_method = "neural"
-            model.load_state_dict(torch.load(f'./model_checkpoints/{model_path}/{args.model_num}_{model_name}'))
+            model.load_state_dict(torch.load(f'./model_checkpoints/{model_path}'))
         model.eval()
 
         relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',

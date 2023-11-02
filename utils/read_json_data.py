@@ -33,7 +33,7 @@ def get_pose_history(data, skeleton_name):
 if __name__ == "__main__":
     mapping = read_json('./mapping.json')
     print(mapping)
-    json_data = read_json('./chopping_stirring_data/chopping_stirring_0.json')
+    json_data = read_json('./reactive_stirring_data/reactive_stirring_0.json')
     kushal_tensor = get_pose_history(json_data, "Kushal")
     print(kushal_tensor.shape)
     prithwish_tensor = get_pose_history(json_data, "Prithwish")

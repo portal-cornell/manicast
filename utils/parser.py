@@ -47,7 +47,7 @@ parser.add_argument('--milestones',type=list,default=[15,25,35,40],help= 'the ep
 parser.add_argument('--gamma',type=float,default=0.1,help= 'gamma correction to the learning rate, after reaching the milestone epochs')
 parser.add_argument('--clip_grad',type=float,default=None,help= 'select max norm to clip gradients')
 parser.add_argument('--model_path',type=str,default='default',help= 'directory with the models checkpoints ')
-parser.add_argument('--load_path',type=str,default='BASE',help= 'directory with the models checkpoints ')
+parser.add_argument('--load_path',type=str,default='base',help= 'directory with the models checkpoints ')
 parser.add_argument('--weight',type=int,default=1,help= 'directory with the models checkpoints ')
 parser.add_argument('--lr_ft',type=float,default=1e-04,help='Learning rate of the optimizer for finetuning')
 parser.add_argument('--transitions',type=int,default=1,help= 'use transitions for training')

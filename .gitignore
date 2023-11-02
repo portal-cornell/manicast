@@ -3,3 +3,4 @@ __pycache__*
 checkpoints*
 *logs*
 finalized_checkpoints*
+*.egg-info

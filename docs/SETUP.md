@@ -4,8 +4,7 @@ Create a conda environment and install the dependencies by
 ```bash
 conda create --name manicast python=3.8.16
 conda activate manicast
-pip install -r requirements.txt
-export PYTHONPATH=$(pwd) // path to parent directory
+pip install -e .
 ```
 
 ### Datasets
@@ -23,7 +22,7 @@ CoMaD data is already included under the `./data/comad_data` directory.
 |
 ├── data
 │   ├── comad_data             <- CoMaD Dataset
-|   	├── chopping_mixing_data 
+|   	├── handover_data 
 |   	├── ... 
 │   ├── utils                  <- PyTorch Dataset Definitions
 |   	├── comad.py 

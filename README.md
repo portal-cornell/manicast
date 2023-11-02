@@ -41,17 +41,18 @@ Setup environments following the [SETUP.md](docs/SETUP.md)
 
 Pretrain model on large-scale data.
 ```
-python3 src/pretrain.py --input_n 10 --weight 1
+python src/pretrain.py --input_n 10 --weight 1
 ```
 
 Finetune the above models using the ManiCast framework.
+Add `--load_path default/<epoch num>` to load a model trained with `pretrain.py`.
 ```
-python src/finetune.py --model_path finetuned --input_n 10 --weight 1
+python src/finetune.py --input_n 10 --weight 1
 ```
 
 Finetune the above models with cost weighted regression.
 ```
-python src/cost_aware_finetune.py --model_path finetuned_cost_weighted_regression --cost_weight .01
+python src/cost_aware_finetune.py --cost_weight .01
 ```
 
 
