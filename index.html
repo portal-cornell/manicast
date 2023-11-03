@@ -1,84 +1,372 @@
-<script src="http://www.google.com/jsapi" type="text/javascript"></script>
-<script type="text/javascript">google.load("jquery", "1.3.2");</script>
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap"
-      rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="./resources/style.css" media="screen"/>
-
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  	<title>ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting</title>
-      <!-- Facebook automatically scrapes this. Go to https://developers.facebook.com/tools/debug/
-          if you update and want to force Facebook to re-scrape. -->
-  	<meta property="og:image" content="./resources/framework.png"/>
-  	<meta property="og:title" content="Collaborative Manipulation with Cost-Aware Human Forecasting" />
-  	<meta property="og:description" content="ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting" />
-    <!-- Twitter automatically scrapes this. Go to https://cards-dev.twitter.com/validator?
-        if you update and want to force Twitter to re-scrape. -->
-    <meta property="twitter:card"          content="summary" />
-    <meta property="twitter:title"         content="Collaborative Manipulation with Cost-Aware Human Forecasting" />
-    <meta property="twitter:description"   content="ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting" />
-    <meta property="twitter:image"         content="./framework.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="description"
+        content="ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script> -->
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
 </head>
-
 <body>
-<div class="container"> 
-    <div>
-        <a href="https://portal.cs.cornell.edu/"><img id="logo" src="./resources/portal_light.png"
-         alt="Portal Group Logo"/></a>
-         <a href="https://portal.cs.cornell.edu/"><img id="cornell" src="./resources/Cornell_University_Logo.png"
-            alt="Portal Group Logo"/></a>
-         <!-- <img id="cornell" src="./resources/Cornell_University_Logo.png"
-         alt="Cornell Logo"/> -->
+
+<!-- <nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://keunhong.com">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link">
+          More Research
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="https://hypernerf.github.io">
+            HyperNeRF
+          </a>
+          <a class="navbar-item" href="https://nerfies.github.io">
+            Nerfies
+          </a>
+          <a class="navbar-item" href="https://latentfusion.github.io">
+            LatentFusion
+          </a>
+          <a class="navbar-item" href="https://photoshape.github.io">
+            PhotoShape
+          </a>
+        </div>
+      </div>
     </div>
 
+  </div>
+</nav> -->
 
-    <div class="title" style="font-size:40px;">
-        ManiCast: Collaborative Manipulation <br>with Cost-Aware Human Forecasting
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting</h1>
+          <h3 class="title is-4 conference-authors"><a target="_blank" href="https://www.robot-learning.org/">CoRL 2023</a></h3>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://kushal2000.github.io/">Kushal Kedia</a>,</span>
+            <span class="author-block">
+              <a href="https://portfolio-pdan101.vercel.app/">Prithwish Dan</a>,</span>
+            <span class="author-block">
+                Atiksh Bhardwaj,
+            </span>
+            <span class="author-block">
+              <a href="https://www.sanjibanchoudhury.com/">Sanjiban Choudhury</a>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Cornell University</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2310.13258.pdf"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2310.13258"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Video Link. -->
+              <!-- <span class="link-block">
+                <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span> -->
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/portal-cornell/manicast"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <!-- Dataset Link. -->
+              <span class="link-block">
+                <a href="https://github.com/portal-cornell/manicast/tree/release/data/comad_data"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="far fa-images"></i>
+                  </span>
+                  <span>Data</span>
+                  </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+</section>
 
-    <div class="venue">
-        CoRL 2023
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+        <img src="./static/images/Fig1_Final.png"
+        class="interpolation-image"
+        alt="Collaborative Manipulation Tasks"/>
+      <h2 class="subtitle has-text-centered">
+        Our framework <span class="dnerf">ManiCast</span>, learns cost-aware human motion forecasts and plans with such forecasts</b>
+        for collaborative manipulation tasks.
+      </h2>
     </div>
+  </div>
+</section>
 
+
+<section class="hero is-light is-small">
+    <div class="hero-body">
+      <div class="container">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="item item-steve">
+            <div class="video-container">
+              <video poster="" id="steve" controls muted playsinline>
+                <source src="./static/videos/stirring_loweres.mp4"
+                        type="video/mp4">
+              </video>
+            </div>
+            <div class="caption">Reactive Stirring</div>
+          </div>
+          <div class="item item-chair-tp">
+            <div class="video-container">
+              <video poster="" id="chair-tp" controls muted playsinline>
+                <source src="./static/videos/tableset_lowerres.mp4"
+                        type="video/mp4">
+              </video>
+            </div>
+            <div class="caption">Table Setting</div>
+          </div>
+          <div class="item item-shiba">
+            <div class="video-container">
+              <video poster="" id="shiba" controls muted playsinline>
+                <source src="./static/videos/handover_lowerres.mp4"
+                        type="video/mp4">
+              </video>
+            </div>
+            <div class="caption">Object Handover</div>
+          </div>
+          <!-- <div class="item item-steve extra">
+            <div class="video-container">
+              <video poster="" id="steve" controls muted playsinline>
+                <source src="./static/videos/stirring_loweres.mp4"
+                        type="video/mp4">
+              </video>
+            </div>
+            <div class="caption">Reactive Stirring</div>
+          </div> -->
+          <!-- <div class="item item-chair-tp extra">
+            <div class="video-container">
+              <video poster="" id="chair-tp" controls muted playsinline>
+                <source src="./static/videos/tableset_lowerres.mp4"
+                        type="video/mp4">
+              </video>
+            </div>
+            <div class="caption">Table Setting</div>
+          </div> -->
+          <!-- <div class="item item-shiba extra">
+            <div class="video-container">
+              <video poster="" id="shiba" controls muted playsinline>
+                <source src="./static/videos/handover_lowerres.mp4"
+                        type="video/mp4">
+              </video>
+            </div>
+            <div class="caption">Object Handover</div>
+          </div> -->
+          <!-- <div class="item item-fullbody">
+            <video poster="" id="fullbody" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/videos/fullbody.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-blueshirt">
+            <video poster="" id="blueshirt" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/videos/blueshirt.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-mask">
+            <video poster="" id="mask" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/videos/mask.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-coffee">
+            <video poster="" id="coffee" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/videos/coffee.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-toby">
+            <video poster="" id="toby" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/videos/toby2.mp4"
+                      type="video/mp4">
+            </video>
+          </div> -->
+          <script>
+            const videos = document.querySelectorAll('video');
+            let currentVideoIndex = 0;
+          
+            // Play the first video
+            videos[currentVideoIndex].play();
+          
+            videos[currentVideoIndex].addEventListener('ended', playNextVideo);
+          
+            function playNextVideo() {
+              // Pause the current video
+              videos[currentVideoIndex].pause();
+          
+              // Increment the current video index
+              currentVideoIndex++;
+              currentVideoIndex = currentVideoIndex % 3;
+          
+              // Check if there's a next video to play
+              if (currentVideoIndex < videos.length) {
+                videos[currentVideoIndex].play();
+                videos[currentVideoIndex].addEventListener('ended', playNextVideo);
+              }
+            }
+          </script>
+        
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Seamless human-robot manipulation in close proximity relies on accurate forecasts of human motion. 
+            While there has been significant progress in learning forecast models at scale, when applied to manipulation tasks,
+            these models accrue high errors at critical transition points leading to degradation in downstream planning performance. 
+            Our key insight is that instead of predicting the most likely human motion, it is sufficient to produce forecasts that
+            capture how future human motion would affect the cost of a robot's plan. We present <span class="dnerf">ManiCast</span>, 
+            a novel framework that learns cost-aware human forecasts and feeds them to a model predictive control planner to execute 
+            collaborative manipulation tasks. Our framework enables fluid, real-time interactions between a human and a 7-DoF robot arm 
+            across a number of real-world tasks such as reactive stirring, object handovers, and collaborative table setting. 
+            We evaluate both the motion forecasts and the end-to-end forecaster-planner system against a range of learned and 
+            heuristic baselines while additionally contributing new datasets. 
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+    <!-- Paper video. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Video</h2>
+        <div class="publication-video">
+          <iframe src="./static/videos/Spotlight.mp4"
+                  frameborder="0" allow="encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+    <!--/ Paper video. -->
     <br><br>
 
-    <div class="author">
-        <a href="https://kushal2000.github.io/">Kushal Kedia</a><sup>*</sup>
-    </div>
-    <div class="author">
-        <a href="https://portfolio-pdan101.vercel.app/">Prithwish Dan</a><sup>*</sup>
-    </div>
-    <div class="author">
-        Atiksh Bhardwaj<sup>*</sup>
-    </div>
-    <div class="author">
-        <a href="https://www.sanjibanchoudhury.com/">Sanjiban Choudhury</a><sup>*</sup>
-    </div>
+    <!-- Approach -->
+    <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">ManiCast</h2>
+          <h3 class="title is-4">Forecasting Objective for Cost-Aware Planning</h3>
+          <div class="publication-video">
+            <img src="./static/images/forecasting_loss.jpg">
+            <div class="content">
+              <p>
+                Optimizing the above objective directly is challenging since the cost function has non-differentiable components. We approximate this objective and introduce cost-awareness with two different strategies.
+              </p>
+            </div>
+            <div class="strategy">
+              <div class="strategy-section">
+                <b>Strategy #1: Importance Sampling.</b>
+                <p>Identify "transitions" when the human comes into the robot's workspace and upsampling these regions in our dataset.</p>
+              </div>
+              <div class="strategy-section">
+                <b>Strategy #2: Dimension Weighting.</b>
+                <p>The planning cost is sensitive to forecasting errors along certain dimensions of the human pose, so we upweight them.</p>
+              </div>
+            </div>
+          </div>
 
-
-    <br><br>
-
-    <div class="affiliation"><sup>*&nbsp;</sup>Cornell University</div>
-    <!-- <div class="affiliation"><sup>2&nbsp;</sup>Affiliation Number Two</div>
-    <div class="affiliation"><sup>3&nbsp;</sup>Affiliation Number Three</div>
-    <div class="affiliation"><sup>4&nbsp;</sup>Affiliation Number Four</div> -->
-
-    <br><br>
-
-    <div class="links"><a href="https://openreview.net/forum?id=rxlokRzNWRq">[Paper]</a></div>
-    <!-- <div class="links">[Paper]</div> -->
-    <div class="links" style="max-width: 250px;"><a href="https://github.com/portal-cornell/manicast">[Code + Datasets]</a></div>
-    <!-- <div class="links" style="max-width: 250px;">[Code (Coming Soon)]</div> -->
-    <!-- <div class="links" style="max-width: 250px;">[Data (Coming Soon)]</div> -->
-
-    <br><br>
-
-    <img style="width: 90%;" src="./resources/approach_fig.png" alt="Method Overview."/>
-    <br><br>
-    
-        <p style="max-width: 950px;width:90%;text-align: justify;text-justify: inter-word;">
-            Overview of our framework <b>ManiCast</b>, 
+          <h3 class="title is-4">Method</h3>
+          <div class="publication-video">
+            <img src="./static/images/approach_fig.png">
+            <p>
+                Overview of our framework <span class="dnerf">ManiCast</span>, 
             which learns <b>cost-aware human motion forecasts</b> and <b>plans with such forecasts</b>
             for <b>collaborative manipulation</b> tasks. At train time, we fine-tune pre-trained 
             human motion forecasting models on task specific datasets by upsampling 
@@ -86,107 +374,26 @@
             of the robot's planned trajectory. At inference time, we feed these forecasts 
             into a model predictive control (MPC) planner to compute robot plans that 
             are <b>reactive</b> and keep a <b>safe distance</b> from the human.
-        </p>
-        
-    <br>
-    <hr>
-
-    <h1>Abstract</h1>
-    <p style="width: 80%;text-align: justify;">
-        Seamless human-robot manipulation in close proximity relies on accurate forecasts of human motion. 
-        While there has been significant progress in learning forecast models at scale, when applied to manipulation tasks,
-         these models accrue high errors at critical transition points leading to degradation in downstream planning performance. 
-         Our key insight is that instead of predicting the most likely human motion, it is sufficient to produce forecasts that
-          capture how future human motion would affect the cost of a robot's plan. We present ManiCast, 
-          a novel framework that learns cost-aware human forecasts and feeds them to a model predictive control planner to execute 
-          collaborative manipulation tasks. Our framework enables fluid, real-time interactions between a human and a 7-DoF robot arm 
-          across a number of real-world tasks such as reactive stirring, object handovers, and collaborative table setting. 
-          We evaluate both the motion forecasts and the end-to-end forecaster-planner system against a range of learned and 
-          heuristic baselines while additionally contributing new datasets. 
-    </p>
-
-    <br><br>
-    <hr>
-
-    <h1>Video</h1>
-    <div class="video-container">
-        <iframe src="./resources/Spotlight.mp4" frameBorder="0"
-                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen></iframe>
-    </div>
-
-    <!-- <video width="800px";
-    frameBorder="0"; 
-    controls="controls";
-    style="border:2px solid black";>
-        <source src="./resources/video.mp4" type="video/mp4"></source>
-    </video> -->
-
-    <br><br><br><br>
-    <hr>
-
-
-    <h1>Human-Robot<br>Collaborative Manipulation</h1>
-    <br>
-
-    <img style="width: 90%;" src="./resources/Fig1_Final.png" alt="Collaborative Tasks"/>
-    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
-        We present closed-loop, real-time collaborative human-robot manipulation across three different
-        kitchen tasks by combining learned human pose forecasts with model predictive control.
-    </p>
-
-    <br><br><br>
-
-    <img style="width: 90%;" src="./resources/Fig3_Final.png" alt="Transition Windows"/>
-    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
-        (Top) The <i>x</i>-position of the reaching human's wrist in a Reactive Stirring test set episode. <i>x</i> &ge; 0.4 indicates the wrist is near the pot.
-        <br>(Bottom) <i>Base</i> model's forecasts (trained only on large scale motion data) have high errors during transitions and lag behind the current pose. 
-        <i>ManiCast</i>, trained on CoMaD by upsampling transitions, predicts the reaching human's pose faster than tracking the current pose.
-    </p>
-
-    <br><br><br>
-
-    <img style="width: 90%;" src="./resources/Fig_Results.png" alt="Results"/>
-    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
-        Our forecasting method outperforms baselines on Final Displacement Errors (FDE) on all joints, 
-        and more specifically shows great improvements on wrist joints that are critical 
-        to the Human-Robot interactions. 
-    </p>
-
-    <!-- <div class="grid-container">
-        <div class="grid-item">
-            <figure> 
-                <img src="./resources/Handover_Manicast.gif" alt="MLE">
-                <figcaption>Object Handover</figcaption>
-            </figure>
+            </p>
+          </div>
         </div>
-        <div class="grid-item">
-            <figure> 
-                <img src="./resources/Stirring_Manicast.gif" alt="SAFE">
-                <figcaption>Reactive Stirring</figcaption>
-            </figure>
-        </div>
-        <div class="grid-item center">
-            <figure> 
-                <img src="./resources/Tabletop_ManiCast.gif" alt="SAFE">
-                <figcaption>Tabletop Manipulation</figcaption>
-            </figure>
-        </div>
-    </div> -->
+      </div>
+      <!--/ Paper video. -->
+  </div>
+</section>
 
-    <br><br><br>
-    <hr>
 
-    <h1>Qualitative Results</h1>
+<section class="section">
+  <div class="container is-max-desktop">
 
-    <h2>Reactive Stirring</h2>
-    <video height="400px";
-    frameBorder="0"; 
-    controls="controls";>
-        <source src="./resources/Stirring_Manicast.mp4" type="video/mp4"></source>
-    </video>
-    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
-        While the robot is stirring the pot, the human periodically wants to 
+    <div class="is-centered">
+
+      <!-- Reactive Stirring -->
+      <!-- <div class="column">
+        <div class="content">
+          <h2 class="title is-3">Reactive Stirring</h2>
+          <p>
+            While the robot is stirring the pot, the human periodically wants to 
         add more vegetables to the pot. For this interaction to occur comfortably,
         the robot must anticipate the human's intent to enter its workspace and pause 
         its stirring momentarily before resuming when the human plans to exit its 
@@ -194,72 +401,105 @@
         an uncomfortable retraction, whereas planning with ManiCast forecasts ensures 
         a faster reaction time both when the human moves to place vegetables and 
         when the human is returning to chopping more vegetables.
-    </p>
+          </p>
+          <video id="dollyzoom" controls muted loop playsinline height="100%">
+            <source src="./static/videos/stirringupdated.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+      </div> -->
+      <!--/ Reactive Stirring -->
 
-    <h2>Collaborative Table Setting</h2>
-    <video height="450px";
-    frameBorder="0"; 
-    controls="controls";>
-        <source src="./resources/Tabletop_ManiCast.mp4" type="video/mp4"></source>
-    </video>
-    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
-        The human and robot each have their own respective goals, namely picking up 
-        different items from the table which are in close proximity. Carrying out their plans to 
-        pick up the items may lead to collisions or uncomfortable interactions. Compared to 
-        simply planning robot manipulation based on the current position of the human, incorporating 
-        ManiCast forecasts into the planner's cost function ensures safety and smoothness.
-    </p>
+      <!-- Collaborative Table Setting. -->
+      <!-- <div class="column">
+        <h2 class="title is-3">Collaborative Table Setting</h2>
+        <div class="columns is-centered">
+          <div class="column content">
+            <p>
+                The human and robot each have their own respective goals, namely picking up 
+                different items from the table which are in close proximity. Carrying out their plans to 
+                pick up the items may lead to collisions or uncomfortable interactions. Compared to 
+                simply planning robot manipulation based on the current position of the human, incorporating 
+                ManiCast forecasts into the planner's cost function ensures safety and smoothness.
+            </p>
+            <video id="matting-video" controls playsinline height="100%">
+              <source src="./static/videos/tabletopupdated.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
 
-    <h2>Object Handover</h2>
-    <video height="500px";
-    frameBorder="1"; 
-    controls="controls";>
-        <source src="./resources/Handover_Manicast.mp4" type="video/mp4"></source>
-    </video>
-    <p style="width: 80%;text-align: justify;margin-top: 0.8em;">
-        When performing an object handover, humans naturally predict the handover location 
+        </div>
+      </div>
+    </div> -->
+    <!--/ Collaborative Table Setting. -->
+
+    <!-- Object Handover. -->
+    <!-- <div class="column">
+        <h2 class="title is-3">Object Handover</h2>
+        <div class="columns is-centered">
+          <div class="column content">
+            <p>
+                When performing an object handover, humans naturally predict the handover location 
         and move their hand to that spot. In order for a robot to do so, it must forecast 
         the handover location and plan its actions accordingly. Compared to the robot following 
         the human's current pose or planning under the assumption that the human will be moving 
         at a constant velocity, planning with ManiCast forecasts produces seamless and realistic 
         interactions.
-    </p>
+            </p>
+            <video id="matting-video" controls playsinline height="100%">
+              <source src="./static/videos/handoverupdated.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
 
-    <hr>
+        </div>
+      </div>
+    </div> -->
+    <!--/ Object Handover. -->
 
-    <h1>Paper</h1>
-    <div class="paper-thumbnail">
-        <a href="https://openreview.net/forum?id=rxlokRzNWRq">
-            <img class="layered-paper-big" width="100%" src="./resources/preview_corl.png" alt="Paper thumbnail"/>
-        </a>
+
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@inproceedings{
+    kedia2023manicast,
+    title={ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting},
+    author={Kushal Kedia and Prithwish Dan and Atiksh Bhardwaj and Sanjiban Choudhury},
+    booktitle={7th Annual Conference on Robot Learning},
+    year={2023},
+    url={https://openreview.net/forum?id=rxlokRzNWRq}
+}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <!-- <div class="content has-text-centered">
+      <a class="icon-link"
+         href="./static/videos/nerfies_paper.pdf">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="https://github.com/keunhong" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div> -->
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content has-text-centered">
+          <p>
+            Website template borrowed from <a
+              href="https://github.com/nerfies/nerfies.github.io">NeRFies</a>.
+          </p>
+        </div>
+      </div>
     </div>
-    <div class="paper-info">
-        <a href="https://openreview.net/forum?id=rxlokRzNWRq"><h3>ManiCast: Collaborative Manipulation <br>with Cost-Aware Human Forecasting</h3></a>
-        <p>Kushal Kedia, Prithwish Dan, Atiksh Bhardwaj, Sanjiban Choudhury</p>
-<pre><code>@inproceedings{
-kedia2023manicast,
-title={ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting},
-author={Kushal Kedia and Prithwish Dan and Atiksh Bhardwaj and Sanjiban Choudhury},
-booktitle={7th Annual Conference on Robot Learning},
-year={2023},
-url={https://openreview.net/forum?id=rxlokRzNWRq}
-}   
-</code></pre> 
-    </div>
-
-    <br><br>
-    <hr>
-
-    <!-- <h1>Acknowledgements</h1>
-    <p style="width: 80%;">We sincerely thank <a href="https://github.com/nicolethean">Nicole Thean (@nicolethean)</a> for creating our art assets for <span class="ms">Robotouille</span>!</p>
-    <p style="width: 80%;">
-        This template was originally made by <a href="http://web.mit.edu/phillipi/">Phillip Isola</a> and <a href="http://richzhang.github.io/">Richard Zhang</a> for a <a href="http://richzhang.github.io/colorization/">colorful project</a>, and inherits the modifications made by <a href="https://github.com/jasonyzhang/webpage-template">Jason Zhang</a>.
-        The code can be found <a href="https://github.com/elliottwu/webpage-template">here</a>.
-    </p> -->
-
-    <br><br>
-</div>
+  </div>
+</footer>
 
 </body>
-
 </html>
