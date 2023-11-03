@@ -383,87 +383,34 @@
 </section>
 
 
+
 <section class="section">
   <div class="container is-max-desktop">
 
-    <div class="is-centered">
-
-      <!-- Reactive Stirring -->
-      <!-- <div class="column">
-        <div class="content">
-          <h2 class="title is-3">Reactive Stirring</h2>
-          <p>
-            While the robot is stirring the pot, the human periodically wants to 
-        add more vegetables to the pot. For this interaction to occur comfortably,
-        the robot must anticipate the human's intent to enter its workspace and pause 
-        its stirring momentarily before resuming when the human plans to exit its 
-        workspace. Robot manipulation planning is often slow and leads to 
-        an uncomfortable retraction, whereas planning with ManiCast forecasts ensures 
-        a faster reaction time both when the human moves to place vegetables and 
-        when the human is returning to chopping more vegetables.
-          </p>
-          <video id="dollyzoom" controls muted loop playsinline height="100%">
-            <source src="./static/videos/stirringupdated.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-      </div> -->
-      <!--/ Reactive Stirring -->
-
-      <!-- Collaborative Table Setting. -->
-      <!-- <div class="column">
-        <h2 class="title is-3">Collaborative Table Setting</h2>
-        <div class="columns is-centered">
-          <div class="column content">
-            <p>
-                The human and robot each have their own respective goals, namely picking up 
-                different items from the table which are in close proximity. Carrying out their plans to 
-                pick up the items may lead to collisions or uncomfortable interactions. Compared to 
-                simply planning robot manipulation based on the current position of the human, incorporating 
-                ManiCast forecasts into the planner's cost function ensures safety and smoothness.
-            </p>
-            <video id="matting-video" controls playsinline height="100%">
-              <source src="./static/videos/tabletopupdated.mp4"
-                      type="video/mp4">
-            </video>
-          </div>
-
-        </div>
-      </div>
-    </div> -->
-    <!--/ Collaborative Table Setting. -->
-
-    <!-- Object Handover. -->
-    <!-- <div class="column">
-        <h2 class="title is-3">Object Handover</h2>
-        <div class="columns is-centered">
-          <div class="column content">
-            <p>
-                When performing an object handover, humans naturally predict the handover location 
-        and move their hand to that spot. In order for a robot to do so, it must forecast 
-        the handover location and plan its actions accordingly. Compared to the robot following 
-        the human's current pose or planning under the assumption that the human will be moving 
-        at a constant velocity, planning with ManiCast forecasts produces seamless and realistic 
-        interactions.
-            </p>
-            <video id="matting-video" controls playsinline height="100%">
-              <source src="./static/videos/handoverupdated.mp4"
-                      type="video/mp4">
-            </video>
-          </div>
-
-        </div>
-      </div>
-    </div> -->
-    <!--/ Object Handover. -->
-
-
-  </div>
-</section>
-
-
-<section class="section" id="BibTeX">
-  <div class="container is-max-desktop content">
+    <div class="columns is-centered has-text-centered">
+      <div class="column" id="Paper">
+        <h2 class="title is-3">Paper</h2>
+    <div class="paper-thumbnail">
+        <a href="https://arxiv.org/pdf/2310.13258.pdf">
+            <img class="layered-paper-big" width="100%" src="./resources/preview_corl.png" alt="Paper thumbnail"/>
+        </a>
+    </div>
+    <div class="paper-info">
+        <!-- <a href="https://openreview.net/forum?id=rxlokRzNWRq"><h3>ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting</h3></a>
+        <p>Kushal Kedia, Prithwish Dan, Atiksh Bhardwaj, Sanjiban Choudhury</p> -->
+        <h3 class="title is-4" style="text-align: center;">BibTex</h3>
+<pre style="overflow-x:hidden; text-wrap:wrap;"><code>@inproceedings{
+kedia2023manicast,
+title={ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting},
+author={Kushal Kedia and Prithwish Dan and Atiksh Bhardwaj and Sanjiban Choudhury},
+booktitle={7th Annual Conference on Robot Learning},
+year={2023},
+url={https://openreview.net/forum?id=rxlokRzNWRq}
+}   
+</code></pre> 
+    </div>
+    </div>
+  <!-- <div class="container is-max-desktop content">
     <h2 class="title">BibTeX</h2>
     <pre><code>@inproceedings{
     kedia2023manicast,
@@ -473,7 +420,8 @@
     year={2023},
     url={https://openreview.net/forum?id=rxlokRzNWRq}
 }</code></pre>
-  </div>
+  </div> -->
+</div>
 </section>
 
 
