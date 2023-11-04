@@ -143,6 +143,7 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person="Kus
 
     return marker_array
 
+
 if name == "__main__":
     model.load_state_dict(torch.load(f"./model_checkpoints/{args.load_path}"))
     model.eval()
@@ -154,7 +155,7 @@ if name == "__main__":
     rate = rospy.Rate(120)
 
     dataset_folder = f"./data/comad_data/"
-    mapping_file = "./mapping.json"
+    mapping_file = "./data/mapping.json"
 
     with open(mapping_file, "r") as f:
         mapping = json.load(f)

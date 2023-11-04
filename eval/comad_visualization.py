@@ -52,7 +52,7 @@ p_x = np.linspace(-10, 10, 15)
 p_y = np.linspace(-10, 10, 15)
 X, Y = np.meshgrid(p_x, p_y)
 
-mapping_file = f"./mapping.json"
+mapping_file = f"./data/mapping.json"
 with open(mapping_file, "r") as f:
     mapping = json.load(f)
 
@@ -66,7 +66,7 @@ for stream_person in data:
 ax.set_xlim3d([0, 1])
 ax.set_ylim3d([0, 1])
 ax.set_zlim3d([1.2, 2.2])
-plt.axis('off')
+plt.axis("off")
 for timestep in range(0, len(data[list(data.keys())[0]]), 5):
     print(round(timestep / 120, 1))
     joint_data_A = person_data["Kushal"]

@@ -32,7 +32,7 @@ class CoMaD(Dataset):
     def __init__(self,data_dir,input_n,output_n,sample_rate, split=0, mocap_splits=default_splits, names=default_names):
         """
         data_dir := './data/comad_data'
-        mapping_file := './mapping.json'
+        mapping_file := './data/mapping.json'
         """
         self.data_dir = data_dir
         self.input_frames = input_n 
@@ -43,7 +43,7 @@ class CoMaD(Dataset):
         sequence_len = input_n + output_n
         joint_names = ['BackTop', 'LShoulderBack', 'RShoulderBack',
                       'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut']
-        mapping = read_json('./mapping.json')
+        mapping = read_json('./data/mapping.json')
         joint_used = np.array([mapping[joint_name] for joint_name in joint_names])
         
 
