@@ -56,7 +56,7 @@ mapping_file = f"./data/mapping.json"
 with open(mapping_file, "r") as f:
     mapping = json.load(f)
 
-episode_file = "./data/comad_data/handover/train/handover_4.json"
+episode_file = f"./data/comad_data/{args.data_dir}/{args.visualize_from}/{args.data_dir}_{args.ep_num}.json"
 with open(episode_file, "r") as f:
     data = json.load(f)
 

@@ -73,6 +73,14 @@ Generate evaluation metrics on CoMaD Dataset.
 python eval/test_comad.py
 ```
 
+### Visualization
+
+Play any data episode via any model.
+```
+python eval/comad_visualization.py --data_dir {handover, reactive_stirring, table_setting} --visualize_from {train, val, test} --ep_num EPISODE_NUMBER --load_path MODEL_NAME
+```
+Python notebook demo through eval/comad_visualization.ipynb.
+
 ### Results
 <table border="0">
  <tr align="center">
