@@ -37,6 +37,14 @@ are <b>reactive</b> and keep a <b>safe distance</b> from the human.
 
 Setup environments following the [SETUP.md](docs/SETUP.md)
 
+### Visualization
+
+Play any data episode via any model.
+```
+python eval/comad_visualization.py --data_dir {handover, reactive_stirring, table_setting} --visualize_from {train, val, test} --ep_num EPISODE_NUMBER --load_path MODEL_NAME
+```
+Python notebook demo through eval/comad_visualization.ipynb.
+
 ### Training
 
 Pretrain model on large-scale data.
@@ -72,14 +80,6 @@ Generate evaluation metrics on CoMaD Dataset.
 ```
 python eval/test_comad.py
 ```
-
-### Visualization
-
-Play any data episode via any model.
-```
-python eval/comad_visualization.py --data_dir {handover, reactive_stirring, table_setting} --visualize_from {train, val, test} --ep_num EPISODE_NUMBER --load_path MODEL_NAME
-```
-Python notebook demo through eval/comad_visualization.ipynb.
 
 ### Results
 <table border="0">
