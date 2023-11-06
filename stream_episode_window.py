@@ -9,7 +9,8 @@ from utils.parser import args
 from pynput import keyboard
 
 def get_relevant_joints(all_joints, relevant_joints=['BackTop', 'LShoulderBack', 'RShoulderBack',
-                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']):                       
+                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 
+                        'WaistRBack', 'LHandOut', 'RHandOut']):                       
     relevant_joint_pos = []
     for joint in relevant_joints:
         pos = all_joints[mapping[joint]]
@@ -79,7 +80,8 @@ def get_forecast(history_joints, future_joints):
 
 def get_marker(id, pose, edge, ns = 'current', alpha=1, red=1, green=1, blue=1):
     relevant_joints=['BackTop', 'LShoulderBack', 'RShoulderBack',
-                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']
+                        'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 
+                        'WaistRBack', 'LHandOut', 'RHandOut']
     SCALE = 0.015
     marker = Marker()
     marker.header.frame_id = "mocap"
@@ -109,9 +111,14 @@ def get_marker(id, pose, edge, ns = 'current', alpha=1, red=1, green=1, blue=1):
     pos1, pos2 = pose[edge[0]], pose[edge[1]]
     p1, p2 = Point(), Point()
     x, y, z = pos1.tolist()
-    p1.x, p1.y, p1.z = -x-0.4, z, y
+    #for forward positioned mocap
+    p1.x, p1.y, p1.z = -z+0.4, -x+1.3, y+0.1
     x, y, z = pos2.tolist()
-    p2.x, p2.y, p2.z = -x-0.4, z, y
+    p2.x, p2.y, p2.z = -z+0.4, -x+1.3, y+0.1
+    #for sideways positioned mocap
+    # p1.x, p1.y, p1.z = -x-0.2, z-0.6, y+0.1
+    # x, y, z = pos2.tolist()
+    # p2.x, p2.y, p2.z = -x-0.2, z-0.6, y+0.1
 
     p1m.points = [p1, p2]
     marker.points = [p1, p2]
@@ -125,7 +132,8 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
     edges = [
             (0, 1), (0, 2),
             (1, 3), (3, 5),
-            (2, 4), (4, 6)
+            (2, 4), (4, 6),
+            (5, 9), (6, 10)
         ]
     # extra edges to connect the pose back to the hips
     extra_edges = [(1, 7), (7, 8), (8, 2)]
@@ -170,28 +178,28 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
     # for i, time in enumerate([4, 9, 14, 19, 24]):
     chosen = [3,7,11,16,21]
     chosen = [21]
-    for i, time in enumerate(range(22)):
-        for idx, edge in enumerate(edges + extra_edges):
-            if time not in chosen:
-                tup = get_marker((i+2)*900+idx, 
-                                        forecast_joints[time], 
-                                        edge,
-                                        ns=f'forecast{time}', 
-                                        alpha=0.15,
-                                        red=0.1, 
-                                        green=0.1, 
-                                        blue=0.6)
-            else:
-                tup = get_marker((i+2)*900+idx, 
-                                            forecast_joints[time], 
-                                            edge,
-                                            ns=f'forecast{time}', 
-                                            alpha=1.0,
-                                            red=0.1, 
-                                            green=0.1, 
-                                            blue=1.0)
-            marker_array.markers.append(tup[0])
-            marker_array.markers.append(tup[1])
+    # for i, time in enumerate(range(22)):
+    #     for idx, edge in enumerate(edges + extra_edges):
+    #         if time not in chosen:
+    #             tup = get_marker((i+2)*900+idx, 
+    #                                     forecast_joints[time], 
+    #                                     edge,
+    #                                     ns=f'forecast{time}', 
+    #                                     alpha=0.15,
+    #                                     red=0.1, 
+    #                                     green=0.1, 
+    #                                     blue=0.6)
+    #         else:
+    #             tup = get_marker((i+2)*900+idx, 
+    #                                         forecast_joints[time], 
+    #                                         edge,
+    #                                         ns=f'forecast{time}', 
+    #                                         alpha=1.0,
+    #                                         red=0.1, 
+    #                                         green=0.1, 
+    #                                         blue=1.0)
+    #         marker_array.markers.append(tup[0])
+    #         marker_array.markers.append(tup[1])
 
     # for i, time in enumerate([24]):
     #     for idx, edge in enumerate(edges + extra_edges):
@@ -207,7 +215,7 @@ def get_marker_array(current_joints, future_joints, forecast_joints, person = "K
 
 if __name__ == '__main__':
     rospy.init_node('forecaster', anonymous=True)
-    human_forecast = rospy.Publisher("/human_forecast", MarkerArray, queue_size=1)
+    human_forecast = rospy.Publisher("/human_forecast1", MarkerArray, queue_size=1)
 
     model = Model(args.input_dim,args.input_n, args.output_n,args.st_gcnn_dropout,args.joints_to_consider,
                 args.n_tcnn_layers,args.tcnn_kernel_size,args.tcnn_dropout).to('cpu')
@@ -218,10 +226,11 @@ if __name__ == '__main__':
     model.eval()
 
     
-    episode_file = "handover.json"
 
 
     episode_file = f"/home/portal/MHAD_Processing/{args.activity}_data/{args.activity}_{args.ep_num}.json"
+
+    episode_file = "/home/portal/MHAD_Processing/wristmovement.json"
     mapping_file = "mapping.json"
     with open(episode_file, 'r') as f:
         data = json.load(f)
@@ -230,7 +239,7 @@ if __name__ == '__main__':
 
     relevant_joints = ['BackTop', 'LShoulderBack', 'RShoulderBack',
                         'LElbowOut', 'RElbowOut', 'LWristOut', 'RWristOut', 'WaistLBack', 'WaistRBack']
-    
+
     joint_used = np.array([mapping[joint_name] for joint_name in relevant_joints])
     
     pause = False
@@ -248,8 +257,8 @@ if __name__ == '__main__':
     for stream_person in data:
         person_data[stream_person] = np.array(data[stream_person])
     for i in range(100):
-        for timestep in range(args.start_frame, args.end_frame, 1):
-            print(round((timestep-args.start_frame)/120, 1))
+        for timestep in range(120, 1680, 1):
+            print(round((timestep-0)/120, 1))
             if not pause and listener.running:
                 for stream_person in data:
                     if stream_person != "Kushal": continue
@@ -257,10 +266,10 @@ if __name__ == '__main__':
                     current_joints = get_relevant_joints(joint_data[timestep])
                     history_joints = get_history(joint_data, timestep)
                     future_joints = get_future(joint_data, timestep)
-                    forecast_joints = get_forecast(history_joints, future_joints)
+                    # forecast_joints = get_forecast(history_joints, future_joints)
                     marker_array = get_marker_array(current_joints=current_joints, 
                                                     future_joints=future_joints,
-                                                    forecast_joints=forecast_joints,
+                                                    forecast_joints=None,
                                                     person=stream_person)
                     # future_markers = get_future_markers(future_joints)
                     human_forecast.publish(marker_array)
@@ -270,7 +279,6 @@ if __name__ == '__main__':
                 pause = False
                 listener = keyboard.Listener(on_press=on_press)
                 listener.start()
-            break
-
+        break
 
 # import pdb; pdb.set_trace()
