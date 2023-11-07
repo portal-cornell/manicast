@@ -66,7 +66,7 @@ for stream_person in data:
 ax.set_xlim3d([0, 1])
 ax.set_ylim3d([0, 1])
 ax.set_zlim3d([1.2, 2.2])
-plt.axis("off")
+ax.grid(False)
 for timestep in range(0, len(data[list(data.keys())[0]]), 5):
     print(round(timestep / 120, 1))
     joint_data_A = person_data["Kushal"]
@@ -98,8 +98,7 @@ for timestep in range(0, len(data[list(data.keys())[0]]), 5):
         prev=prev_B,
         threshold=0.8,
     )
-    plt.title(str(round(timestep / 120, 1)), y=-0.1)
-    plt.title(str(round(timestep / 120, 1)), y=-0.1)
+    plt.title(args.data_dir + ": " + str(round(timestep / 120, 1)), y=-0.15)
     plt.pause(0.0001)
     # if timestep/120 >= 3:
     #     break

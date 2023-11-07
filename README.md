@@ -21,7 +21,7 @@ Atiksh Bhardwaj,
 <a href="https://www.sanjibanchoudhury.com/">Sanjiban Choudhury</a>
 
 <p align="center">
-  <img src="./docs/approach_fig.png">
+  <img src="./docs/Viz_Ex_Manicast.gif">
 </p>
 
 Our framework <b>ManiCast</b>
