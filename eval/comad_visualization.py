@@ -63,9 +63,15 @@ with open(episode_file, "r") as f:
 for stream_person in data:
     person_data[stream_person] = np.array(data[stream_person])
 
-ax.set_xlim3d([0, 1])
-ax.set_ylim3d([0, 1])
-ax.set_zlim3d([1.2, 2.2])
+if args.data_dir == "reactive_stirring":
+    ax.set_xlim3d([-1, 1])
+    ax.set_ylim3d([-1, 1])
+    ax.set_zlim3d([1.2, 2.8])
+else:
+    ax.set_xlim3d([0, 1])
+    ax.set_ylim3d([0, 1])
+    ax.set_zlim3d([1.2,2.2]) 
+
 ax.grid(False)
 for timestep in range(0, len(data[list(data.keys())[0]]), 5):
     print(round(timestep / 120, 1))
@@ -96,7 +102,7 @@ for timestep in range(0, len(data[list(data.keys())[0]]), 5):
         timestep=timestep,
         ax=ax,
         prev=prev_B,
-        threshold=0.8,
+        threshold=100,
     )
     plt.title(args.data_dir + ": " + str(round(timestep / 120, 1)), y=-0.15)
     plt.pause(0.0001)

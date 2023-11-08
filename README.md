@@ -20,9 +20,16 @@ This is an official implementation for the CoRL 2023 paper:\
 Atiksh Bhardwaj,
 <a href="https://www.sanjibanchoudhury.com/">Sanjiban Choudhury</a>
 
-<p align="center">
-  <img src="./docs/Viz_Ex_Manicast.gif">
-</p>
+<table border="0">
+ <tr align="center">
+    <td><img src="docs/react_legend.gif" alt>
+    <em>Reactive Stirring</em></td>
+    <td><img src="docs/handover_legend.gif" alt>
+    <em>Object Handover</em></td>
+    <td><img src="docs/table_legend.gif" alt>
+    <em>Collaborative Table Setting</em></td>
+ </tr>
+</table>
 
 Our framework <b>ManiCast</b>
 learns <b>cost-aware human motion forecasts</b> and <b>plans with such forecasts</b>
