@@ -75,18 +75,13 @@ python eval/test_comad.py
 
 Pretrain model on large-scale data.
 ```
-python src/pretrain.py --input_n 10 --weight 1
+python src/pretrain.py --weight 1
 ```
 
 Finetune the above models using the ManiCast framework.
 Add `--load_path default/<epoch num>` to load a model trained with `pretrain.py`.
 ```
-python src/finetune.py --input_n 10 --weight 1
-```
-
-Finetune the above models with cost weighted regression.
-```
-python src/cost_aware_finetune.py --cost_weight .01
+python src/finetune.py --weight 1 `--load_path default/<epoch num>`
 ```
 
 ### Results
