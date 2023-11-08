@@ -22,11 +22,11 @@ Atiksh Bhardwaj,
 
 <table border="0">
  <tr align="center">
-    <td><img width="auto" height="500" src="docs/react_legend.gif" alt>
+    <td><img width="500" height="500" src="docs/react_legend.gif" alt>
     <em>Reactive Stirring</em></td>
-    <td><img width="auto" height="500" src="docs/handover_legend.gif" alt>
+    <td><img width="500" height="500" src="docs/handover_legend.gif" alt>
     <em>Object Handover</em></td>
-    <td><img width="auto" height="500" src="docs/table_legend.gif" alt>
+    <td><img width="500" height="500" src="docs/table_legend.gif" alt>
     <em>Collaborative Table Setting</em></td>
  </tr>
 </table>
