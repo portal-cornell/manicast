@@ -92,11 +92,11 @@ python src/cost_aware_finetune.py --cost_weight .01
 ### Results
 <table border="0">
  <tr align="center">
-    <td><img width="250" height="500" src="docs/stirring_loweres.gif" alt>
+    <td><img width="250" height="300" src="docs/stirring_loweres.gif" alt>
     <em>Reactive Stirring</em></td>
-    <td><img width="250" height="500" src="docs/handovergif_lowerres.gif" alt>
+    <td><img width="250" height="300" src="docs/handovergif_lowerres.gif" alt>
     <em>Object Handover</em></td>
-    <td><img width="250" height="500" src="docs/tableset_lowerres.gif" alt>
+    <td><img width="250" height="300" src="docs/tableset_lowerres.gif" alt>
     <em>Collaborative Table Setting</em></td>
  </tr>
 </table>
