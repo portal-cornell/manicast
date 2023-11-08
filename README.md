@@ -22,11 +22,11 @@ Atiksh Bhardwaj,
 
 <table border="0">
  <tr align="center">
-    <td><img src="docs/react_legend.gif" alt>
+    <td><img width="auto" height="500" src="docs/react_legend.gif" alt>
     <em>Reactive Stirring</em></td>
-    <td><img src="docs/handover_legend.gif" alt>
+    <td><img width="auto" height="500" src="docs/handover_legend.gif" alt>
     <em>Object Handover</em></td>
-    <td><img src="docs/table_legend.gif" alt>
+    <td><img width="auto" height="500" src="docs/table_legend.gif" alt>
     <em>Collaborative Table Setting</em></td>
  </tr>
 </table>
@@ -91,11 +91,11 @@ python eval/test_comad.py
 ### Results
 <table border="0">
  <tr align="center">
-    <td><img src="docs/Stirring_Manicast.gif" alt>
+    <td><img width="auto" height="500" src="docs/stirring_loweres.gif" alt>
     <em>Reactive Stirring</em></td>
-    <td><img src="docs/Handover_Manicast.gif" alt>
+    <td><img width="auto" height="500" src="docs/handovergif_lowerres.gif" alt>
     <em>Object Handover</em></td>
-    <td><img src="docs/Tabletop_Manicast.gif" alt>
+    <td><img width="auto" height="500" src="docs/tableset_lowerres.gif" alt>
     <em>Collaborative Table Setting</em></td>
  </tr>
 </table>
