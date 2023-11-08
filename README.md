@@ -44,13 +44,32 @@ are <b>reactive</b> and keep a <b>safe distance</b> from the human.
 
 Setup environments following the [SETUP.md](docs/SETUP.md)
 
+We release checkpoints of all the [models](model_checkpoints) used in our paper. The next two sections provide instructions on how to use these models.
+
 ### Visualization
 
 Play any data episode via any model.
 ```
-python eval/comad_visualization.py --data_dir {handover, reactive_stirring, table_setting} --visualize_from {train, val, test} --ep_num EPISODE_NUMBER --load_path MODEL_NAME
+python eval/comad_visualization.py --data_dir {handover, reactive_stirring, table_setting} --visualize_from {train, val, test} --ep_num <EPISODE_NUMBER> --load_path <MODEL_NAME>
 ```
 Python notebook demo through eval/comad_visualization.ipynb.
+
+### Evaluation
+
+Generate evaluation metrics on Object Handovers.
+```
+python eval/handover.py --ep_num 2
+```
+
+Generate evaluation metrics on Reactive Stirring.
+```
+python eval/reactive_stirring.py --ep_num 4
+```
+
+Generate evaluation metrics on CoMaD Dataset.
+```
+python eval/test_comad.py
+```
 
 ### Training
 
@@ -68,24 +87,6 @@ python src/finetune.py --input_n 10 --weight 1
 Finetune the above models with cost weighted regression.
 ```
 python src/cost_aware_finetune.py --cost_weight .01
-```
-
-
-### Evaluation
-
-Generate evaluation metrics on Object Handovers.
-```
-python eval/handover.py --ep_num 2
-```
-
-Generate evaluation metrics on Reactive Stirring.
-```
-python eval/reactive_stirring.py --ep_num 4
-```
-
-Generate evaluation metrics on CoMaD Dataset.
-```
-python eval/test_comad.py
 ```
 
 ### Results
