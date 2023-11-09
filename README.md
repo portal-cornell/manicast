@@ -36,17 +36,16 @@ Our framework <b>ManiCast</b>
 learns <b>cost-aware human motion forecasts</b> and <b>plans with such forecasts</b>
 for <b>collaborative manipulation</b> tasks.
 
-<table border="0">
+<table align="center" border="0">
  <tr align="center">
-    <td><img width="350" height="350" src="docs/react_legend.gif" alt>
-    <em>Reactive Stirring</em></td>
-    <td><img width="350" height="350" src="docs/handover_legend.gif" alt>
-    <em>Object Handover</em></td>
-<!--     <td><img width="250" height="250" src="docs/table_legend.gif" alt>
-    <em>Collaborative Table Setting</em></td> -->
+    <td><img width="350" height="350" src="docs/react_legend.gif" alt><br>
+<!--     <em>Reactive Stirring</em></td> -->
+    <td><img width="350" height="350" src="docs/handover_legend.gif" alt><br>
+<!--     <em>Object Handover</em></td> -->
  </tr>
 </table>
-
+<!--     <td><img width="250" height="250" src="docs/table_legend.gif" alt>
+    <em>Collaborative Table Setting</em></td> -->
 At train time, we fine-tune pre-trained 
 human motion forecasting models on task specific datasets by upsampling 
 transition points and upweighting joint dimensions that dominate the cost 
