@@ -12,7 +12,7 @@ Atiksh Bhardwaj,
 
 **[`Website`](https://portal-cornell.github.io/manicast) | [`Paper`](https://arxiv.org/abs/2310.13258)**
 
-This is an official implementation for the CoRL 2023 paper:\
+This is a repository containing datasets, visualizations and model checkpoints for the CoRL 2023 paper:\
 **ManiCast: Collaborative Manipulation with Cost-Aware Human Forecasting**
 <br>
 <a href="https://kushal2000.github.io/">Kushal Kedia</a>,
@@ -20,20 +20,34 @@ This is an official implementation for the CoRL 2023 paper:\
 Atiksh Bhardwaj,
 <a href="https://www.sanjibanchoudhury.com/">Sanjiban Choudhury</a>
 
+### Real-World Collaborative Manipulation
 <table border="0">
  <tr align="center">
-    <td><img width="250" height="250" src="docs/react_legend.gif" alt>
+    <td><img width="250" height="300" src="docs/stirring_loweres.gif" alt>
     <em>Reactive Stirring</em></td>
-    <td><img width="250" height="250" src="docs/handover_legend.gif" alt>
+    <td><img width="250" height="300" src="docs/handovergif_lowerres.gif" alt>
     <em>Object Handover</em></td>
-    <td><img width="250" height="250" src="docs/table_legend.gif" alt>
+    <td><img width="250" height="300" src="docs/tableset_lowerres.gif" alt>
     <em>Collaborative Table Setting</em></td>
  </tr>
 </table>
 
 Our framework <b>ManiCast</b>
 learns <b>cost-aware human motion forecasts</b> and <b>plans with such forecasts</b>
-for <b>collaborative manipulation</b> tasks. At train time, we fine-tune pre-trained 
+for <b>collaborative manipulation</b> tasks.
+
+<table border="0">
+ <tr align="center">
+    <td><img width="250" height="250" src="docs/react_legend.gif" alt>
+    <em>Reactive Stirring</em></td>
+    <td><img width="250" height="250" src="docs/handover_legend.gif" alt>
+    <em>Object Handover</em></td>
+<!--     <td><img width="250" height="250" src="docs/table_legend.gif" alt>
+    <em>Collaborative Table Setting</em></td> -->
+ </tr>
+</table>
+
+At train time, we fine-tune pre-trained 
 human motion forecasting models on task specific datasets by upsampling 
 transition points and upweighting joint dimensions that dominate the cost 
 of the robot's planned trajectory. At inference time, we feed these forecasts 
@@ -84,17 +98,7 @@ Add `--load_path default/<epoch num>` to load a model trained with `pretrain.py`
 python src/finetune.py --weight 1 `--load_path default/<epoch num>`
 ```
 
-### Results
-<table border="0">
- <tr align="center">
-    <td><img width="250" height="300" src="docs/stirring_loweres.gif" alt>
-    <em>Reactive Stirring</em></td>
-    <td><img width="250" height="300" src="docs/handovergif_lowerres.gif" alt>
-    <em>Object Handover</em></td>
-    <td><img width="250" height="300" src="docs/tableset_lowerres.gif" alt>
-    <em>Collaborative Table Setting</em></td>
- </tr>
-</table>
+
 
 <!-- ### Work in Progress -->
 
