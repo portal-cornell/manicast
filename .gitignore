@@ -1,6 +1,6 @@
 datasets*
 __pycache__*
 checkpoints*
-*ipynb
-*logs
+*logs*
 finalized_checkpoints*
+*.egg-info

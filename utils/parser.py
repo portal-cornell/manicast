@@ -46,8 +46,8 @@ parser.add_argument('--use_scheduler',type=bool,default=True,help= 'use MultiSte
 parser.add_argument('--milestones',type=list,default=[15,25,35,40],help= 'the epochs after which the learning rate is adjusted by gamma')
 parser.add_argument('--gamma',type=float,default=0.1,help= 'gamma correction to the learning rate, after reaching the milestone epochs')
 parser.add_argument('--clip_grad',type=float,default=None,help= 'select max norm to clip gradients')
-parser.add_argument('--model_path',type=str,default='./checkpoints/CKPT_3D_H36M',help= 'directory with the models checkpoints ')
-parser.add_argument('--load_path',type=str,default='pretrain',help= 'directory with the models checkpoints ')
+parser.add_argument('--model_path',type=str,default='default',help= 'directory with the models checkpoints ')
+parser.add_argument('--load_path',type=str,default='base',help= 'directory with the models checkpoints ')
 parser.add_argument('--weight',type=int,default=1,help= 'directory with the models checkpoints ')
 parser.add_argument('--lr_ft',type=float,default=1e-04,help='Learning rate of the optimizer for finetuning')
 parser.add_argument('--transitions',type=int,default=1,help= 'use transitions for training')
@@ -59,6 +59,9 @@ parser.add_argument('--model_num',type=int,default=49,help= 'directory with the 
 parser.add_argument('--threshold',type=float,default=0.4,help= 'directory with the models checkpoints ')
 parser.add_argument('--stream_person',type=str,default="Kushal",help= 'directory with the models checkpoints ')
 parser.add_argument('--weight_using',type=str,default="forecast",help= 'directory with the models checkpoints ')
+parser.add_argument('--prediction_method',type=str,default="neural",help= 'directory with the models checkpoints ')
+parser.add_argument('--start_frame',type=int,default=0,help= 'directory with the models checkpoints ')
+parser.add_argument('--end_frame',type=int,default=50,help= 'directory with the models checkpoints ')
 
 #FLAGS FOR THE VISUALIZATION
 

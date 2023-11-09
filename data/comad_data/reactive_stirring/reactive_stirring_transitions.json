@@ -1,0 +1,325 @@
+{
+    "reactive_stirring_0.json": {
+        "timestamps": [
+            [
+                "0:06",
+                "0:10"
+            ],
+            [
+                "0:10",
+                "0:16"
+            ],
+            [
+                "0:24",
+                "0:29"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_1.json": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:12"
+            ],
+            [
+                "0:17",
+                "0:20"
+            ],
+            [
+                "0:26",
+                "0:31"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "reactive_stirring_2.json": {
+        "timestamps": [
+            [
+                "0:08",
+                "0:11"
+            ],
+            [
+                "0:13",
+                "0:17"
+            ],
+            [
+                "0:25",
+                "0:30"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_3.json": {
+        "timestamps": [
+            [
+                "0:02",
+                "0:12"
+            ],
+            [
+                "0:20",
+                "0:23"
+            ],
+            [
+                "0:24",
+                "0:30"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_4.json": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:12"
+            ],
+            [
+                "0:12",
+                "0:16"
+            ],
+            [
+                "0:26",
+                "0:31"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "reactive_stirring_5.json": {
+        "timestamps": [
+            [
+                "0:15",
+                "0:18"
+            ],
+            [
+                "0:19",
+                "0:23"
+            ],
+            [
+                "0:24",
+                "0:29"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "reactive_stirring_6.json": {
+        "timestamps": [
+            [
+                "0:07",
+                "0:10"
+            ],
+            [
+                "0:19",
+                "0:22"
+            ],
+            [
+                "0:24",
+                "0:30"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_7.json": {
+        "timestamps": [
+            [
+                "0:11",
+                "0:14"
+            ],
+            [
+                "0:15",
+                "0:19"
+            ],
+            [
+                "0:27",
+                "0:31"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_8.json": {
+        "timestamps": [
+            [
+                "0:08",
+                "0:11"
+            ],
+            [
+                "0:12",
+                "0:17"
+            ],
+            [
+                "0:24",
+                "0:28"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_9.json": {
+        "timestamps": [
+            [
+                "0:11",
+                "0:13"
+            ],
+            [
+                "0:15",
+                "0:19"
+            ],
+            [
+                "0:27",
+                "0:31"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_10.json": {
+        "timestamps": [
+            [
+                "0:11",
+                "0:13"
+            ],
+            [
+                "0:14",
+                "0:17"
+            ],
+            [
+                "0:19",
+                "0:23"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "reactive_stirring_11.json": {
+        "timestamps": [
+            [
+                "0:06",
+                "0:08"
+            ],
+            [
+                "0:09",
+                "0:12"
+            ],
+            [
+                "0:17",
+                "0:20"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "reactive_stirring_12.json": {
+        "timestamps": [
+            [
+                "0:06",
+                "0:09"
+            ],
+            [
+                "0:14",
+                "0:17"
+            ],
+            [
+                "0:18",
+                "0:23"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "reactive_stirring_13.json": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:12"
+            ],
+            [
+                "0:13",
+                "0:18"
+            ],
+            [
+                "0:27",
+                "0:31"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_14.json": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:13"
+            ],
+            [
+                "0:15",
+                "0:19"
+            ],
+            [
+                "0:27",
+                "0:32"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_15.json": {
+        "timestamps": [
+            [
+                "0:09",
+                "0:13"
+            ],
+            [
+                "0:22",
+                "0:26"
+            ],
+            [
+                "0:27",
+                "0:33"
+            ]
+        ],
+        "name": "Prithwish"
+    },
+    "reactive_stirring_16.json": {
+        "timestamps": [
+            [
+                "0:15",
+                "0:18"
+            ],
+            [
+                "0:19",
+                "0:22"
+            ],
+            [
+                "0:22",
+                "0:26"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "reactive_stirring_17.json": {
+        "timestamps": [
+            [
+                "0:10",
+                "0:13"
+            ],
+            [
+                "0:17",
+                "0:20"
+            ],
+            [
+                "0:22",
+                "0:26"
+            ]
+        ],
+        "name": "Kushal"
+    },
+    "reactive_stirring_18.json": {
+        "timestamps": [
+            [
+                "0:07",
+                "0:10"
+            ],
+            [
+                "0:17",
+                "0:20"
+            ],
+            [
+                "0:21",
+                "0:26"
+            ]
+        ],
+        "name": "Kushal"
+    }
+}
