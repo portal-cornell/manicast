@@ -53,6 +53,12 @@ of the robot's planned trajectory. At inference time, we feed these forecasts
 into a model predictive control (MPC) planner to compute robot plans that 
 are <b>reactive</b> and keep a <b>safe distance</b> from the human.
 
+### Collaborative Manipulation Dataset (CoMaD)
+
+We release a high-quality dataset collected using a motion capture system, consisting of two humans collaborating to perform daily household activities. Episodes of each task along with train, validation and test splits can be found [here](data/comad_data/).
+
+<img src="docs/dataset.png" alt>
+
 ### Setup
 
 Setup environments following the [SETUP.md](docs/SETUP.md)
