@@ -21,16 +21,6 @@ Atiksh Bhardwaj,
 <a href="https://www.sanjibanchoudhury.com/">Sanjiban Choudhury</a>
 
 ### Real-World Collaborative Manipulation
-<table border="0">
- <tr align="center">
-    <td><img width="250" height="300" src="docs/stirring_loweres.gif" alt>
-    <em>Reactive Stirring</em></td>
-    <td><img width="250" height="300" src="docs/handovergif_lowerres.gif" alt>
-    <em>Object Handover</em></td>
-    <td><img width="250" height="300" src="docs/tableset_lowerres.gif" alt>
-    <em>Collaborative Table Setting</em></td>
- </tr>
-</table>
 
 Our framework <b>ManiCast</b>
 learns <b>cost-aware human motion forecasts</b> and <b>plans with such forecasts</b>
